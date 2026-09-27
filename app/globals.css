@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/*
+ * Sistema visual FilaCero (archivo de Figma "FilaCero · Frontend simplificado")
+ *
+ *   60 % neutros claros  → fondo #F3F4F6, superficies blancas, tablas
+ *   30 % cerceta         → barra lateral, estructura, botones secundarios
+ *   10 % esmeralda       → llamados a la acción y estados de farmacia
+ *
+ * Los tonos "menta", "aqua", "ámbar", "azul" y "rojo" son de apoyo (fondos de
+ * avisos, iconos de indicadores y estados) y aparecen tal cual en los mockups.
+ */
+@theme {
+  /* Neutros */
+  --color-neutro: #f3f4f6;
+  --color-neutro-2: #f8fafa;
+  --color-superficie: #ffffff;
+  --color-borde: #d6dee0;
+  --color-borde-fuerte: #c5cfd2;
+  --color-tinta: #1f2937;
+  --color-titulo: #102a2a;
+  --color-tinta-suave: #4b5563;
+  --color-tinta-tenue: #667085;
+  --color-tinta-fuerte: #030712;
+
+  /* Cerceta (estructura) */
+  --color-cerceta: #0d9488;
+  --color-cerceta-profundo: #0f766e;
+  --color-cerceta-oscuro: #115e59;
+  --color-cerceta-noche: #134e4a;
+  --color-aqua: #ccfbf1;
+  --color-aqua-suave: #f0fdfa;
+
+  /* Esmeralda (acción / farmacia) */
+  --color-esmeralda: #10b981;
+  --color-esmeralda-profundo: #047857;
+  --color-menta: #d1fae5;
+  --color-menta-suave: #ecfdf5;
+
+  /* Apoyo */
+  --color-ambar: #b45309;
+  --color-ambar-vivo: #d97706;
+  --color-ambar-fondo: #fef3c7;
+  --color-ambar-borde: #fcd34d;
+  --color-azul: #1d4ed8;
+  --color-azul-fondo: #dbeafe;
+  --color-rojo: #dc2626;
+  --color-rojo-fondo: #fee2e2;
+  --color-peligro: #b91c1c;
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --shadow-tarjeta: 0 3px 12px 0 rgba(16, 42, 42, 0.07);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-neutro);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-cerceta-noche);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

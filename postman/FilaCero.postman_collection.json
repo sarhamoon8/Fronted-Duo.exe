@@ -1,0 +1,552 @@
+{
+  "info": {
+    "_postman_id": "07cad4b1-7f31-4ffa-a2f7-9336add10b10",
+    "name": "FilaCero – Backend, BFF y API externa",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Orden sugerido: Backend › Auth › Login (admin) → Entidades › Crear → Servicios › Crear → Turnos. Luego repite con la carpeta del BFF."
+  },
+  "item": [
+    {
+      "name": "1. Backend NestJS (Bearer)",
+      "description": "Contrato original del backend. El token se guarda en {{token}} al hacer login/registro.",
+      "item": [
+        {
+          "name": "Auth",
+          "item": [
+            {
+              "name": "Registro (PACIENTE)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{api_url}}/auth/register",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Paciente Postman\",\n  \"email\": \"paciente{{$timestamp}}@correo.co\",\n  \"password\": \"secreta1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200/201 con accessToken', () => pm.expect(pm.response.json()).to.have.property('accessToken'));",
+                      "pm.environment.set('token', pm.response.json().accessToken);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Login",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{api_url}}/auth/login",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200/201 con accessToken', () => pm.expect(pm.response.json()).to.have.property('accessToken'));",
+                      "pm.environment.set('token', pm.response.json().accessToken);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Entidades médicas",
+          "item": [
+            {
+              "name": "Listar (público)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{api_url}}/entidades-medicas",
+                "description": "",
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear (ADMIN)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{api_url}}/entidades-medicas",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"EPS Sanitas Fusagasugá\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                      "pm.environment.set('entidad_id', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Obtener por id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{api_url}}/entidades-medicas/{{entidad_id}}",
+                "description": "",
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Servicios",
+          "item": [
+            {
+              "name": "Listar por entidad (público)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{api_url}}/servicios?entidadId={{entidad_id}}",
+                "description": "",
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear (ADMIN)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{api_url}}/servicios",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Dispensación de medicamentos\",\n  \"entidadId\": \"{{entidad_id}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                      "pm.environment.set('servicio_id', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Turnos",
+          "item": [
+            {
+              "name": "Solicitar turno (autenticado)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{api_url}}/turnos",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"servicioId\": \"{{servicio_id}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                      "pm.environment.set('turno_id', pm.response.json().id);",
+                      "pm.test('PENDIENTE con posición', () => { const t = pm.response.json(); pm.expect(t.estado).to.eql('PENDIENTE'); pm.expect(t.posicion).to.be.a('number'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Fila del servicio (FUNCIONARIO/ADMIN)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{api_url}}/turnos/servicio/{{servicio_id}}",
+                "description": "",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Avanzar (FUNCIONARIO/ADMIN)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{api_url}}/turnos/{{turno_id}}/avanzar",
+                "description": "",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Cancelar (dueño o staff)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{api_url}}/turnos/{{turno_id}}/cancelar",
+                "description": "",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Usuarios",
+          "item": [
+            {
+              "name": "Listar (ADMIN)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{api_url}}/usuarios",
+                "description": "",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Crear FUNCIONARIO (ADMIN)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{api_url}}/usuarios",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Funcionario Postman\",\n  \"email\": \"func{{$timestamp}}@filacero.co\",\n  \"password\": \"secreta1\",\n  \"rol\": \"FUNCIONARIO\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Frontend BFF Next.js (cookie httpOnly)",
+      "description": "Mismas operaciones pasando por el frontend (npm run dev en :3001). Postman guarda la cookie filacero_token automáticamente tras el login; no se usa {{token}}.",
+      "item": [
+        {
+          "name": "Login → cookie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{front_url}}/api/auth/login",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Set-Cookie httpOnly', () => pm.expect(pm.response.headers.get('Set-Cookie') || '').to.match(/filacero_token=.*HttpOnly/i));",
+                  "pm.test('No expone el token', () => pm.expect(pm.response.text()).to.not.include('accessToken'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sesión actual",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{front_url}}/api/auth/session",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Entidades (vía BFF)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{front_url}}/api/bff/entidades-medicas",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Servicios de la entidad (vía BFF)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{front_url}}/api/bff/servicios?entidadId={{entidad_id}}",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Solicitar turno (vía BFF)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{front_url}}/api/bff/turnos",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"servicioId\": \"{{servicio_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "pm.environment.set('turno_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Fila del servicio (vía BFF)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{front_url}}/api/bff/turnos/servicio/{{servicio_id}}",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Avanzar (vía BFF)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{front_url}}/api/bff/turnos/{{turno_id}}/avanzar",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Logout (borra cookie)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{front_url}}/api/auth/logout",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
