@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, ChevronDown, LogOut } from "lucide-react";
+import { Bell, ChevronDown, LogOut, UserX } from "lucide-react";
 import { casosDeUso } from "@/infrastructure/container";
 import { useSesionStore } from "@/presentation/stores/sesion.store";
 import { useUiStore } from "@/presentation/stores/ui.store";
@@ -174,8 +174,37 @@ function MenuUsuario({ nombre, email }: { nombre: string; email: string }) {
             <LogOut className="size-4" aria-hidden="true" />
             {saliendo ? "Cerrando sesión…" : "Cerrar sesión"}
           </button>
+          <BotonEliminarCuenta variante="menu" />
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Eliminar cuenta: por ahora SIN acción. El backend aún no expone un endpoint
+ * para borrar el propio usuario (solo existen GET/POST /usuarios).
+ */
+export function BotonEliminarCuenta({ variante }: { variante: "menu" | "hoja" }) {
+  if (variante === "menu") {
+    return (
+      <button
+        type="button"
+        role="menuitem"
+        className="flex min-h-10 w-full items-center gap-2 rounded-lg px-3 text-sm font-medium text-peligro hover:bg-rojo-fondo"
+      >
+        <UserX className="size-4" aria-hidden="true" />
+        Eliminar cuenta
+      </button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-peligro text-sm font-bold text-peligro hover:bg-rojo-fondo"
+    >
+      <UserX className="size-4" aria-hidden="true" />
+      Eliminar cuenta
+    </button>
   );
 }

@@ -11,6 +11,7 @@ import { useUiStore } from "@/presentation/stores/ui.store";
 import { cn } from "@/presentation/lib/cn";
 import { INICIO_POR_ROL, PERFIL_ETIQUETA, estaActivo, navegacionPara } from "./navegacion";
 import { Logo } from "./logo";
+import { BotonEliminarCuenta } from "./pagina";
 
 /**
  * Estructura principal según el Figma:
@@ -198,6 +199,7 @@ function HojaPerfil({ sesion }: { sesion: Sesion }) {
           <LogOut className="size-4" aria-hidden="true" />
           {saliendo ? "Cerrando sesión…" : "Cerrar sesión"}
         </button>
+        <BotonEliminarCuenta variante="hoja" />
       </div>
     </div>
   );
