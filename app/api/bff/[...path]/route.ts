@@ -15,7 +15,8 @@ import { leerToken } from "@/server/session";
  * Solo se permiten los recursos que existen en el backend; /auth tiene sus
  * propios Route Handlers porque debe gestionar la cookie.
  */
-const RECURSOS_PERMITIDOS = /^(entidades-medicas|servicios|turnos|usuarios)(\/|$)/;
+const RECURSOS_PERMITIDOS =
+  /^(entidades-medicas|servicios|puntos-dispensacion|ventanillas|turnos|usuarios)(\/|$)/;
 const METODOS_CON_CUERPO = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 async function proxy(request: NextRequest, ctx: RouteContext<"/api/bff/[...path]">) {

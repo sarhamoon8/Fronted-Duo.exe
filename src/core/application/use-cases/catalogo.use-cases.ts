@@ -17,6 +17,13 @@ export class ListarServiciosUseCase {
   }
 }
 
+export class ListarPuntosUseCase {
+  constructor(private readonly repo: CatalogoRepository) {}
+  ejecutar(entidadId?: string) {
+    return this.repo.listarPuntos(entidadId);
+  }
+}
+
 export class CrearEntidadUseCase {
   constructor(private readonly repo: CatalogoRepository) {}
   ejecutar(nombre: string) {
@@ -50,8 +57,12 @@ export class CrearUsuarioUseCase {
     if (errores.length) throw new AppError(errores, 400);
     return this.repo.crear({
       ...datos,
-      nombre: datos.nombre.trim(),
+      numeroDocumento: datos.numeroDocumento.trim(),
+      tipoDocumento: datos.tipoDocumento.trim(),
+      nombres: datos.nombres.trim(),
+      apellidos: datos.apellidos.trim(),
       email: datos.email.trim().toLowerCase(),
+      telefono: datos.telefono?.trim() || undefined,
     });
   }
 }

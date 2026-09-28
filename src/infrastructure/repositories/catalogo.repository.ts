@@ -1,9 +1,9 @@
 import type { CatalogoRepository } from "@/core/domain/ports";
-import type { EntidadMedica, Servicio } from "@/core/domain/entities/catalogo";
+import type { EntidadMedica, PuntoDispensacion, Servicio } from "@/core/domain/entities/catalogo";
 import { internalApi } from "../http/internal-client";
-import type { EntidadMedicaDto, ServicioDto } from "../mappers";
+import type { EntidadMedicaDto, PuntoDispensacionDto, ServicioDto } from "../mappers";
 
-/** GET/POST /entidades-medicas y /servicios a través del BFF. */
+/** GET/POST /entidades-medicas, /servicios y /puntos-dispensacion a través del BFF. */
 export class HttpCatalogoRepository implements CatalogoRepository {
   async listarEntidades(): Promise<EntidadMedica[]> {
     const { data } = await internalApi.get<EntidadMedicaDto[]>("/bff/entidades-medicas");
@@ -24,6 +24,13 @@ export class HttpCatalogoRepository implements CatalogoRepository {
 
   async crearServicio(nombre: string, entidadId: string): Promise<Servicio> {
     const { data } = await internalApi.post<ServicioDto>("/bff/servicios", { nombre, entidadId });
+    return data;
+  }
+
+  async listarPuntos(entidadId?: string): Promise<PuntoDispensacion[]> {
+    const { data } = await internalApi.get<PuntoDispensacionDto[]>("/bff/puntos-dispensacion", {
+      params: entidadId ? { entidadId } : undefined,
+    });
     return data;
   }
 }
