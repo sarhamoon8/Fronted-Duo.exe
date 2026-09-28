@@ -57,7 +57,10 @@ export function PanelFila() {
     setErrores([]);
     setAviso(null);
     try {
-      const r = tipo === "avanzar" ? await casosDeUso.avanzarTurno.ejecutar(t) : await casosDeUso.cancelarTurno.ejecutar(t);
+      const r =
+        tipo === "avanzar"
+          ? await casosDeUso.avanzarTurno.ejecutar(t, cola.ventanillaId || undefined)
+          : await casosDeUso.cancelarTurno.ejecutar(t);
       setAviso(`Turno ${codigoCorto(r.id)}: ${ESTADO_TURNO_ETIQUETA[r.estado].toLowerCase()}.`);
     } catch (e) {
       setErrores(e instanceof AppError ? e.mensajes : [mensajeDeError(e)]);
@@ -89,8 +92,8 @@ export function PanelFila() {
 
       <SelectorPuesto cola={cola} />
 
-      {!cola.servicioId ? (
-        <EstadoVacio titulo="Selecciona una sede y un servicio" icono={<Users className="size-5" />}>
+      {!cola.puntoId ? (
+        <EstadoVacio titulo="Selecciona una sede y un punto de atención" icono={<Users className="size-5" />}>
           Verás aquí la cola de turnos en tiempo real.
         </EstadoVacio>
       ) : cola.cargandoFila ? (

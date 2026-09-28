@@ -31,19 +31,24 @@ export async function leerToken(): Promise<string | null> {
 
 /**
  * Construye la sesión a partir del token: los claims salen del JWT y el
- * nombre de GET /usuarios/:id (el backend permite consultar el perfil propio).
- * Si el backend responde 401 el token ya no sirve y devolvemos null.
+ * nombre completo (nombres + apellidos) de GET /usuarios/:id (el backend
+ * permite consultar el perfil propio). Si el backend responde 401 el token
+ * ya no sirve y devolvemos null.
  */
 export async function construirSesion(token: string): Promise<Sesion | null> {
   const payload = decodificarJwt(token);
   if (!payload || tokenExpirado(payload)) return null;
 
   try {
-    const res = await crearBackendClient(token).get<{ nombre?: string }>(
+    const res = await crearBackendClient(token).get<{ nombres?: string; apellidos?: string }>(
       `/usuarios/${encodeURIComponent(payload.sub)}`,
     );
     if (res.status === 401) return null;
-    return sesionDesdePayload(payload, res.status === 200 ? res.data.nombre : undefined);
+    const nombreCompleto =
+      res.status === 200 && res.data.nombres && res.data.apellidos
+        ? `${res.data.nombres} ${res.data.apellidos}`
+        : undefined;
+    return sesionDesdePayload(payload, nombreCompleto);
   } catch {
     // Backend caído: seguimos con los datos del token para no romper la UI.
     return sesionDesdePayload(payload);

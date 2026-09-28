@@ -31,7 +31,7 @@ import { Input } from "@/presentation/components/ui/field";
 import { Spinner } from "@/presentation/components/ui/spinner";
 
 const PASOS = [
-  { largo: "Sede y servicio", corto: "Sede" },
+  { largo: "Sede, punto y servicio", corto: "Sede" },
   { largo: "Tus datos", corto: "Datos" },
   { largo: "Confirmación", corto: "Confirmar" },
 ] as const;
@@ -52,27 +52,31 @@ export function SolicitarTurno() {
   const guardar = useTurnosStore((s) => s.guardar);
   const [paso, setPaso] = useState(0);
   const [entidadId, setEntidadId] = useState("");
+  const [puntoId, setPuntoId] = useState("");
   const [servicioId, setServicioId] = useState("");
   const [prioritaria, setPrioritaria] = useState(false);
   const [documento, setDocumento] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [errores, setErrores] = useState<string[]>([]);
-  const { entidades, servicios, cargandoEntidades, cargandoServicios, error } = useCatalogo(entidadId);
+  const { entidades, servicios, puntos, cargandoEntidades, cargandoServicios, cargandoPuntos, error } =
+    useCatalogo(entidadId);
 
   const entidad = entidades.find((e) => e.id === entidadId);
+  const punto = useMemo(() => puntos.find((p) => p.id === puntoId), [puntos, puntoId]);
   const servicio = useMemo(() => servicios.find((s) => s.id === servicioId), [servicios, servicioId]);
 
   function elegirEntidad(id: string) {
     setEntidadId(id);
+    setPuntoId("");
     setServicioId("");
   }
 
   async function confirmar() {
-    if (!servicio || !entidad) return;
+    if (!servicio || !entidad || !punto) return;
     setErrores([]);
     setEnviando(true);
     try {
-      const turno = await casosDeUso.solicitarTurno.ejecutar(servicio.id);
+      const turno = await casosDeUso.solicitarTurno.ejecutar(servicio.id, punto.id);
       guardar(turno, { servicioNombre: servicio.nombre, entidadNombre: entidad.nombre });
       router.push("/turnos?nuevo=1");
     } catch (e) {
@@ -133,9 +137,40 @@ export function SolicitarTurno() {
                 )}
               </Card>
 
+              <Card aria-labelledby="t-punto">
+                <CardTitulo id="t-punto" descripcion="El punto físico donde vas a reclamar tu atención.">
+                  2. Elige el punto de atención
+                </CardTitulo>
+                {!entidadId ? (
+                  <p className="text-sm text-tinta-tenue">Primero selecciona una sede.</p>
+                ) : cargandoPuntos ? (
+                  <Spinner etiqueta="Cargando puntos de atención…" />
+                ) : puntos.length === 0 ? (
+                  <EstadoVacio titulo="Esta sede no tiene puntos de atención registrados" icono={<MapPin className="size-5" />}>
+                    Un administrador debe registrarlos primero.
+                  </EstadoVacio>
+                ) : (
+                  <fieldset>
+                    <legend className="sr-only">Punto de atención</legend>
+                    <div className="flex flex-col gap-2.5">
+                      {puntos.map((p) => (
+                        <OpcionFila
+                          key={p.id}
+                          nombre="punto"
+                          seleccionado={p.id === puntoId}
+                          onChange={() => setPuntoId(p.id)}
+                          titulo={p.nombreSede}
+                          subtitulo={`${p.direccion} · ${p.ciudad}`}
+                        />
+                      ))}
+                    </div>
+                  </fieldset>
+                )}
+              </Card>
+
               <Card aria-labelledby="t-servicio">
                 <CardTitulo id="t-servicio" descripcion="Podrás realizar un trámite por turno.">
-                  2. Elige el servicio
+                  3. Elige el servicio
                 </CardTitulo>
                 {!entidadId ? (
                   <p className="text-sm text-tinta-tenue">Primero selecciona una sede.</p>
@@ -206,13 +241,14 @@ export function SolicitarTurno() {
             </Card>
           )}
 
-          {paso === 2 && entidad && servicio && (
+          {paso === 2 && entidad && punto && servicio && (
             <Card aria-labelledby="t-confirmar">
               <CardTitulo id="t-confirmar" descripcion="Al confirmar, recibirás tu código y tu posición en la fila.">
                 Confirma tu turno
               </CardTitulo>
               <dl className="grid gap-4 text-sm sm:grid-cols-2">
                 <Dato titulo="Sede" valor={entidad.nombre} />
+                <Dato titulo="Punto de atención" valor={punto.nombreSede} />
                 <Dato titulo="Servicio" valor={servicio.nombre} />
                 <Dato titulo="Paciente" valor={usuario?.nombre ?? ""} />
                 <Dato titulo="Notificaciones" valor={usuario ? enmascararEmail(usuario.email) : ""} />
@@ -241,6 +277,7 @@ export function SolicitarTurno() {
             </div>
             <dl className="flex flex-col gap-[18px]">
               <ItemResumen icono={<Hospital className="size-5" strokeWidth={1.75} />} titulo="Sede" valor={entidad?.nombre} />
+              <ItemResumen icono={<MapPin className="size-5" strokeWidth={1.75} />} titulo="Punto de atención" valor={punto?.nombreSede} />
               <ItemResumen icono={<CalendarPlus className="size-5" strokeWidth={1.75} />} titulo="Servicio" valor={servicio?.nombre} />
             </dl>
             <div className="flex items-center justify-between rounded-xl bg-menta p-3.5 text-esmeralda-profundo">
@@ -251,7 +288,7 @@ export function SolicitarTurno() {
               <Button
                 className="w-full"
                 onClick={() => setPaso((p) => p + 1)}
-                disabled={!entidad || !servicio}
+                disabled={!entidad || !punto || !servicio}
                 icono={<ArrowRight className="size-[18px]" aria-hidden="true" />}
               >
                 Continuar

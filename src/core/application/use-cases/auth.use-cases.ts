@@ -15,7 +15,10 @@ export function validarCredenciales(c: Credenciales): string[] {
 /** Mismas reglas que RegisterDto (IsString, IsEmail, MinLength(6)). */
 export function validarRegistro(d: DatosRegistro): string[] {
   const errores: string[] = [];
-  if (!d.nombre.trim()) errores.push("Ingresa tu nombre.");
+  if (!d.numeroDocumento.trim()) errores.push("Ingresa tu número de documento.");
+  if (!d.tipoDocumento.trim()) errores.push("Selecciona tu tipo de documento.");
+  if (!d.nombres.trim()) errores.push("Ingresa tus nombres.");
+  if (!d.apellidos.trim()) errores.push("Ingresa tus apellidos.");
   if (!EMAIL_RE.test(d.email.trim())) errores.push("Ingresa un correo electrónico válido.");
   if (d.password.length < 6) errores.push("La contraseña debe tener al menos 6 caracteres.");
   return errores;
@@ -36,9 +39,13 @@ export class RegistrarseUseCase {
     const errores = validarRegistro(d);
     if (errores.length) throw new AppError(errores, 400);
     return this.repo.registrarse({
-      nombre: d.nombre.trim(),
+      numeroDocumento: d.numeroDocumento.trim(),
+      tipoDocumento: d.tipoDocumento.trim(),
+      nombres: d.nombres.trim(),
+      apellidos: d.apellidos.trim(),
       email: d.email.trim().toLowerCase(),
       password: d.password,
+      telefono: d.telefono?.trim() || undefined,
     });
   }
 }

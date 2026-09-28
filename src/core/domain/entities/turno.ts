@@ -7,9 +7,15 @@ export interface Turno {
   id: string;
   usuarioId: string;
   servicioId: string;
+  puntoId: string;
+  ventanillaId: string | null;
+  codigoAlfanumerico: string;
   estado: EstadoTurno;
+  prioridad: boolean;
   /** Solo los turnos PENDIENTE tienen posición; el resto llega en null. */
   posicion: number | null;
+  horaLlamado: Date | null;
+  horaFinalizacion: Date | null;
   creadoEn: Date;
 }
 
@@ -50,11 +56,17 @@ export function estaActivo(estado: EstadoTurno): boolean {
 }
 
 /**
- * El backend no genera un código alfanumérico; usamos un código corto
- * derivado del UUID solo como referencia visual para el usuario.
+ * El backend ya genera un código alfanumérico propio (codigoAlfanumerico,
+ * p. ej. "T-8K3PQ2"); se prefiere siempre que exista. Este derivado del
+ * UUID queda solo como respaldo para datos antiguos o de ejemplo.
  */
 export function codigoCorto(id: string): string {
   return `T-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
+}
+
+/** Código a mostrar en pantalla: el real del backend, con respaldo derivado del id. */
+export function codigoTurno(t: Pick<Turno, "id" | "codigoAlfanumerico">): string {
+  return t.codigoAlfanumerico || codigoCorto(t.id);
 }
 
 /**

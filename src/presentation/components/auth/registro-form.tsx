@@ -9,16 +9,33 @@ import { casosDeUso } from "@/infrastructure/container";
 import { useSesionStore } from "@/presentation/stores/sesion.store";
 import { ListaErrores } from "@/presentation/components/ui/alert";
 import { Button } from "@/presentation/components/ui/button";
-import { Input } from "@/presentation/components/ui/field";
+import { Input, Select } from "@/presentation/components/ui/field";
+
+const TIPOS_DOCUMENTO = [
+  { valor: "CC", etiqueta: "Cédula de ciudadanía" },
+  { valor: "TI", etiqueta: "Tarjeta de identidad" },
+  { valor: "CE", etiqueta: "Cédula de extranjería" },
+  { valor: "PA", etiqueta: "Pasaporte" },
+] as const;
+
+const VACIO = {
+  numeroDocumento: "",
+  tipoDocumento: "CC",
+  nombres: "",
+  apellidos: "",
+  email: "",
+  password: "",
+  telefono: "",
+};
 
 export function RegistroForm() {
   const router = useRouter();
   const establecer = useSesionStore((s) => s.establecer);
-  const [datos, setDatos] = useState({ nombre: "", email: "", password: "" });
+  const [datos, setDatos] = useState(VACIO);
   const [errores, setErrores] = useState<string[]>([]);
   const [enviando, setEnviando] = useState(false);
 
-  const set = (campo: keyof typeof datos) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const set = (campo: keyof typeof datos) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setDatos((d) => ({ ...d, [campo]: e.target.value }));
 
   async function onSubmit(e: FormEvent) {
@@ -42,8 +59,36 @@ export function RegistroForm() {
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <ListaErrores errores={errores} />
-      <Input etiqueta="Nombre completo" name="nombre" autoComplete="name" required value={datos.nombre} onChange={set("nombre")} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Select etiqueta="Tipo de documento" name="tipoDocumento" required value={datos.tipoDocumento} onChange={set("tipoDocumento")}>
+          {TIPOS_DOCUMENTO.map((t) => (
+            <option key={t.valor} value={t.valor}>{t.etiqueta}</option>
+          ))}
+        </Select>
+        <Input
+          etiqueta="Número de documento"
+          name="numeroDocumento"
+          inputMode="numeric"
+          autoComplete="off"
+          required
+          value={datos.numeroDocumento}
+          onChange={set("numeroDocumento")}
+        />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Input etiqueta="Nombres" name="nombres" autoComplete="given-name" required value={datos.nombres} onChange={set("nombres")} />
+        <Input etiqueta="Apellidos" name="apellidos" autoComplete="family-name" required value={datos.apellidos} onChange={set("apellidos")} />
+      </div>
       <Input etiqueta="Correo electrónico" type="email" name="email" autoComplete="email" inputMode="email" required value={datos.email} onChange={set("email")} />
+      <Input
+        etiqueta="Teléfono (opcional)"
+        name="telefono"
+        type="tel"
+        autoComplete="tel"
+        inputMode="tel"
+        value={datos.telefono}
+        onChange={set("telefono")}
+      />
       <Input
         etiqueta="Contraseña"
         type="password"

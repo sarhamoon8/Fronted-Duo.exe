@@ -38,8 +38,8 @@ export function TablaTurnosServicio({
       <EncabezadoPagina titulo={titulo} descripcion={descripcion} />
       <SelectorPuesto cola={cola} />
       {cola.errorFila && <Alert tono="error" titulo={cola.errorFila} className="mb-4" />}
-      {!cola.servicioId ? (
-        <EstadoVacio titulo="Selecciona una sede y un servicio" icono={<ListChecks className="size-5" />} />
+      {!cola.puntoId ? (
+        <EstadoVacio titulo="Selecciona una sede y un punto de atención" icono={<ListChecks className="size-5" />} />
       ) : cola.cargandoFila ? (
         <Spinner etiqueta="Cargando turnos…" />
       ) : (
