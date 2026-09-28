@@ -108,14 +108,22 @@ export function PanelAdmin() {
   }
 
   /* ---- Usuario ---- */
-  const vacioUsuario = { nombre: "", email: "", password: "", rol: "FUNCIONARIO" as Rol };
+  const vacioUsuario = {
+    numeroDocumento: "",
+    tipoDocumento: "CC",
+    nombres: "",
+    apellidos: "",
+    email: "",
+    password: "",
+    rol: "FUNCIONARIO" as Rol,
+  };
   const [usuario, setUsuario] = useState(vacioUsuario);
   const mUsuario = useMutacion();
   async function crearUsuario(e: FormEvent) {
     e.preventDefault();
     const ok = await mUsuario.correr(async () => {
       const r = await casosDeUso.crearUsuario.ejecutar(usuario);
-      return `${ROL_ETIQUETA[r.rol]} "${r.nombre}" creado.`;
+      return `${ROL_ETIQUETA[r.rol]} "${r.nombres} ${r.apellidos}" creado.`;
     });
     if (ok) {
       setUsuario(vacioUsuario);
@@ -158,7 +166,19 @@ export function PanelAdmin() {
           <CardTitulo id="t-usuario">Nuevo usuario</CardTitulo>
           <form onSubmit={crearUsuario} noValidate className="flex flex-col gap-4">
             <Mensajes errores={mUsuario.errores} exito={mUsuario.exito} />
-            <Input etiqueta="Nombre" value={usuario.nombre} onChange={(e) => setUsuario((u) => ({ ...u, nombre: e.target.value }))} autoComplete="off" required />
+            <div className="grid grid-cols-2 gap-3">
+              <Select etiqueta="Tipo doc." value={usuario.tipoDocumento} onChange={(e) => setUsuario((u) => ({ ...u, tipoDocumento: e.target.value }))}>
+                <option value="CC">CC</option>
+                <option value="TI">TI</option>
+                <option value="CE">CE</option>
+                <option value="PA">PA</option>
+              </Select>
+              <Input etiqueta="N.º documento" value={usuario.numeroDocumento} onChange={(e) => setUsuario((u) => ({ ...u, numeroDocumento: e.target.value }))} autoComplete="off" required />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Input etiqueta="Nombres" value={usuario.nombres} onChange={(e) => setUsuario((u) => ({ ...u, nombres: e.target.value }))} autoComplete="off" required />
+              <Input etiqueta="Apellidos" value={usuario.apellidos} onChange={(e) => setUsuario((u) => ({ ...u, apellidos: e.target.value }))} autoComplete="off" required />
+            </div>
             <Input etiqueta="Correo" type="email" value={usuario.email} onChange={(e) => setUsuario((u) => ({ ...u, email: e.target.value }))} autoComplete="off" required />
             <Input etiqueta="Contraseña inicial" type="password" value={usuario.password} onChange={(e) => setUsuario((u) => ({ ...u, password: e.target.value }))} autoComplete="new-password" ayuda="Mínimo 6 caracteres." required />
             <Select etiqueta="Rol" value={usuario.rol} onChange={(e) => setUsuario((u) => ({ ...u, rol: e.target.value as Rol }))}>
@@ -219,7 +239,7 @@ export function PanelAdmin() {
                 <tbody className="divide-y divide-borde">
                   {usuarios.map((u, i) => (
                     <tr key={u.id} className={i % 2 ? "bg-neutro-2" : "bg-superficie"}>
-                      <td className="px-3 py-2 font-medium">{u.nombre}</td>
+                      <td className="px-3 py-2 font-medium">{u.nombres} {u.apellidos}</td>
                       <td className="px-3 py-2">{u.email}</td>
                       <td className="px-3 py-2">{ROL_ETIQUETA[u.rol]}</td>
                       <td className="px-3 py-2 whitespace-nowrap">{formatearFechaHora(u.creadoEn)}</td>

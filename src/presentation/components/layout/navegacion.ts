@@ -43,6 +43,9 @@ export const NAVEGACION: Record<Rol, ItemNavegacion[]> = {
     { href: "/admin/servicios", etiqueta: "Servicios", icono: Stethoscope },
     { href: "/admin/inventario", etiqueta: "Inventario", icono: Package },
     { href: "/admin/reportes", etiqueta: "Reportes", icono: BarChart3 },
+    // El backend ya autoriza a ADMIN igual que a FUNCIONARIO en /turnos
+    // (@Roles(FUNCIONARIO, ADMIN)); faltaba el enlace en el menú.
+    { href: "/fila", etiqueta: "Cola de turnos", corta: "Cola", icono: ListOrdered },
   ],
 };
 
