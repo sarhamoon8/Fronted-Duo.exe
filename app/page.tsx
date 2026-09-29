@@ -5,6 +5,7 @@ import { leerToken } from "@/server/session";
 import { decodificarJwt, tokenExpirado } from "@/server/jwt";
 import { INICIO_POR_ROL } from "@/presentation/components/layout/navegacion";
 import { Logo } from "@/presentation/components/layout/logo";
+import { Presentacion } from "@/presentation/components/layout/presentacion";
 import { claseBoton } from "@/presentation/components/ui/button";
 
 export default async function Home() {
@@ -14,6 +15,7 @@ export default async function Home() {
 
   return (
     <div className="flex min-h-dvh flex-col">
+      <Presentacion />
       <header className="bg-cerceta-oscuro">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <Logo />

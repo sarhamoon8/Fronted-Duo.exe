@@ -1,0 +1,100 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { TicketCheck } from "lucide-react";
+import { cn } from "@/presentation/lib/cn";
+
+const LINEA_1 = "Bienvenido a FilaCero";
+const LINEA_2_PREFIJO = "donde transformamos la espera en";
+const LINEA_2_DESTACADO = "tranquilidad.";
+
+// Momentos (ms) en los que aparece cada línea; deben coincidir con los delays del CSS.
+const RETRASO_LINEA_1 = 400;
+const RETRASO_LINEA_2 = 2300;
+const RETRASO_PUNTOS = 4300;
+const DURACION_MS = 6600;
+const SALIDA_MS = 700;
+
+// Solo se muestra una vez por carga de la app: al volver a "/" desde /login no se repite.
+let yaMostrada = false;
+
+/** Pantalla de bienvenida animada que cubre la portada antes de mostrarla. */
+export function Presentacion() {
+  const [fase, setFase] = useState<"visible" | "saliendo" | "oculta">(() => (yaMostrada ? "oculta" : "visible"));
+
+  useEffect(() => {
+    if (fase !== "visible") return;
+    yaMostrada = true;
+    document.body.style.overflow = "hidden";
+    const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const t = setTimeout(() => setFase("saliendo"), reducido ? 1800 : DURACION_MS);
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key === "Escape" || e.key === "Enter") setFase("saliendo");
+    };
+    window.addEventListener("keydown", tecla);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("keydown", tecla);
+      document.body.style.overflow = "";
+    };
+  }, [fase]);
+
+  useEffect(() => {
+    if (fase !== "saliendo") return;
+    const t = setTimeout(() => setFase("oculta"), SALIDA_MS);
+    return () => clearTimeout(t);
+  }, [fase]);
+
+  if (fase === "oculta") return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-label="Bienvenida a FilaCero"
+      onClick={() => setFase("saliendo")}
+      className={cn(
+        "fixed inset-0 z-50 flex cursor-pointer flex-col items-center justify-center overflow-hidden bg-cerceta-oscuro px-6 text-center text-white",
+        fase === "saliendo" && "intro-salida",
+      )}
+    >
+      <span aria-hidden="true" className="intro-halo absolute size-[520px] rounded-full bg-cerceta/40 blur-3xl" />
+      <span aria-hidden="true" className="intro-halo absolute -bottom-40 -right-40 size-[420px] rounded-full bg-esmeralda/20 blur-3xl [animation-delay:1.5s]" />
+
+      <div className="relative flex max-w-3xl flex-col items-center gap-8">
+        <span aria-hidden="true" className="intro-logo flex size-20 items-center justify-center rounded-2xl bg-white text-cerceta-oscuro shadow-tarjeta sm:size-24">
+          <TicketCheck className="size-10 sm:size-12" strokeWidth={1.75} />
+        </span>
+
+        <p className="flex flex-col items-center gap-3">
+          <span
+            className="intro-linea opacity-0 text-4xl font-semibold leading-tight tracking-tight sm:text-6xl"
+            style={{ animationDelay: `${RETRASO_LINEA_1}ms` }}
+          >
+            {LINEA_1}
+          </span>
+          <span
+            className="intro-linea opacity-0 text-2xl font-normal text-white/90 sm:text-5xl"
+            style={{ animationDelay: `${RETRASO_LINEA_2}ms` }}
+          >
+            {LINEA_2_PREFIJO} <span className="text-menta">{LINEA_2_DESTACADO}</span>
+          </span>
+        </p>
+
+        {/* La "fila" de puntos se vacía hasta quedar en cero. */}
+        <span aria-hidden="true" className="flex gap-2.5">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <span key={i} className="intro-punto size-2.5 rounded-full bg-menta" style={{ animationDelay: `${RETRASO_PUNTOS + i * 200}ms` }} />
+          ))}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setFase("saliendo")}
+        className="absolute bottom-6 right-6 rounded-lg px-3 py-2 text-sm font-semibold text-white/70 hover:bg-white/10 hover:text-white"
+      >
+        Saltar
+      </button>
+    </div>
+  );
+}

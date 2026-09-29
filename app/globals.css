@@ -77,3 +77,44 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Presentación de bienvenida (portada) */
+@keyframes intro-aparecer {
+  from { opacity: 0; transform: translateY(16px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes intro-logo {
+  0% { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+  60% { opacity: 1; transform: scale(1.08) rotate(2deg); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes intro-punto {
+  0% { opacity: 0; transform: scale(0); }
+  15% { opacity: 1; transform: scale(1); }
+  70% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0); }
+}
+@keyframes intro-halo {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+@keyframes intro-salida {
+  to { opacity: 0; transform: scale(1.04); }
+}
+.intro-linea {
+  display: inline-block;
+  animation: intro-aparecer 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+.intro-logo {
+  animation: intro-logo 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.intro-punto {
+  opacity: 0;
+  animation: intro-punto 1.4s ease-in-out forwards;
+}
+.intro-halo {
+  animation: intro-halo 6s ease-in-out infinite;
+}
+.intro-salida {
+  animation: intro-salida 0.7s ease-in forwards;
+}
