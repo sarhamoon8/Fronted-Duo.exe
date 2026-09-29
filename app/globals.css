@@ -101,10 +101,9 @@ body {
 @keyframes intro-salida {
   to { opacity: 0; transform: scale(1.04); }
 }
-.intro-palabra {
+.intro-linea {
   display: inline-block;
-  opacity: 0;
-  animation: intro-aparecer 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  animation: intro-aparecer 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
 }
 .intro-logo {
   animation: intro-logo 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
