@@ -4,10 +4,16 @@ import { useEffect, useState } from "react";
 import { TicketCheck } from "lucide-react";
 import { cn } from "@/presentation/lib/cn";
 
-const LINEA_1 = ["Bienvenido", "a", "FilaCero,"];
-const LINEA_2 = ["donde", "transformamos", "la", "espera", "en", "tranquilidad."];
-const DURACION_MS = 8000;
-const SALIDA_MS = 300;
+const LINEA_1 = "Bienvenido a FilaCero";
+const LINEA_2_PREFIJO = "donde transformamos la espera en";
+const LINEA_2_DESTACADO = "tranquilidad.";
+
+// Momentos (ms) en los que aparece cada línea; deben coincidir con los delays del CSS.
+const RETRASO_LINEA_1 = 400;
+const RETRASO_LINEA_2 = 2300;
+const RETRASO_PUNTOS = 4300;
+const DURACION_MS = 6600;
+const SALIDA_MS = 700;
 
 // Solo se muestra una vez por carga de la app: al volver a "/" desde /login no se repite.
 let yaMostrada = false;
@@ -21,7 +27,7 @@ export function Presentacion() {
     yaMostrada = true;
     document.body.style.overflow = "hidden";
     const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const t = setTimeout(() => setFase("saliendo"), reducido ? 2000 : DURACION_MS);
+    const t = setTimeout(() => setFase("saliendo"), reducido ? 1800 : DURACION_MS);
     const tecla = (e: KeyboardEvent) => {
       if (e.key === "Escape" || e.key === "Enter") setFase("saliendo");
     };
@@ -41,17 +47,6 @@ export function Presentacion() {
 
   if (fase === "oculta") return null;
 
-  let indice = 0;
-  const palabra = (p: string, resaltada = false) => (
-    <span
-      key={p}
-      className={cn("intro-palabra", resaltada && "text-menta")}
-      style={{ animationDelay: `${600 + indice++ * 140}ms` }}
-    >
-      {p}
-    </span>
-  );
-
   return (
     <div
       role="dialog"
@@ -70,17 +65,25 @@ export function Presentacion() {
           <TicketCheck className="size-10 sm:size-12" strokeWidth={1.75} />
         </span>
 
-        <p className="text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
-          <span className="flex flex-wrap justify-center gap-x-[0.3em]">{LINEA_1.map((p) => palabra(p))}</span>
-          <span className="mt-2 flex flex-wrap justify-center gap-x-[0.3em] text-2xl font-normal text-white/90 sm:text-4xl">
-            {LINEA_2.map((p) => palabra(p, p === "tranquilidad."))}
+        <p className="flex flex-col items-center gap-3">
+          <span
+            className="intro-linea opacity-0 text-4xl font-semibold leading-tight tracking-tight sm:text-6xl"
+            style={{ animationDelay: `${RETRASO_LINEA_1}ms` }}
+          >
+            {LINEA_1}
+          </span>
+          <span
+            className="intro-linea opacity-0 text-2xl font-normal text-white/90 sm:text-5xl"
+            style={{ animationDelay: `${RETRASO_LINEA_2}ms` }}
+          >
+            {LINEA_2_PREFIJO} <span className="text-menta">{LINEA_2_DESTACADO}</span>
           </span>
         </p>
 
         {/* La "fila" de puntos se vacía hasta quedar en cero. */}
         <span aria-hidden="true" className="flex gap-2.5">
           {[0, 1, 2, 3, 4].map((i) => (
-            <span key={i} className="intro-punto size-2.5 rounded-full bg-menta" style={{ animationDelay: `${2300 + i * 220}ms` }} />
+            <span key={i} className="intro-punto size-2.5 rounded-full bg-menta" style={{ animationDelay: `${RETRASO_PUNTOS + i * 200}ms` }} />
           ))}
         </span>
       </div>
