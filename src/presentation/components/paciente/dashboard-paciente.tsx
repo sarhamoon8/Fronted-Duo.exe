@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Bell, BellDot, CalendarPlus, Clock, Headphones, Pill, Plus, Ticket, TicketPlus } from "lucide-react";
+import { ArrowRight, Bell, BellDot, CalendarPlus, Clock, Headphones, History, Pill, Plus, Ticket, TicketPlus } from "lucide-react";
 import { codigoCorto, estimarEspera } from "@/core/domain/entities/turno";
 import { useMontado } from "@/presentation/hooks/use-montado";
 import { cn, fechaLarga, formatearHora, saludo } from "@/presentation/lib/cn";
@@ -39,11 +39,6 @@ export function DashboardPaciente() {
           className="mb-0"
           titulo="Tu salud, sin filas innecesarias"
           descripcion={`${fechaLarga()} · Bogotá D. C.`}
-          acciones={
-            <BotonEnlace href="/turnos/solicitar" icono={<Plus className="size-[18px]" aria-hidden="true" />}>
-              Solicitar nuevo turno
-            </BotonEnlace>
-          }
         />
       </div>
 
@@ -74,13 +69,13 @@ export function DashboardPaciente() {
         </div>
         <ul className="grid grid-cols-2 gap-2.5 lg:grid-cols-3 lg:gap-4">
           <AccesoRapido
-            href="/turnos/solicitar"
-            icono={<TicketPlus className="size-[18px] lg:size-5" strokeWidth={1.75} />}
+            href="/historial"
+            icono={<History className="size-[18px] lg:size-5" strokeWidth={1.75} />}
             tono="menta"
-            titulo="Solicitar un turno"
-            tituloCorto="Solicitar turno"
-            texto="Elige sede y servicio sin hacer fila."
-            accion="Nuevo turno"
+            titulo="Ver mi historial"
+            tituloCorto="Historial"
+            texto="Consulta tus turnos y atenciones anteriores."
+            accion="Ver historial"
           />
           <AccesoRapido
             href="/medicamentos"
