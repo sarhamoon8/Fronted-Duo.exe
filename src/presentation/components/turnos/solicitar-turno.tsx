@@ -21,7 +21,6 @@ import { AppError, mensajeDeError } from "@/core/domain/errors";
 import { casosDeUso } from "@/infrastructure/container";
 import { useCatalogo } from "@/presentation/hooks/use-catalogo";
 import { useSesionStore } from "@/presentation/stores/sesion.store";
-import { useTurnosStore } from "@/presentation/stores/turnos.store";
 import { cn, enmascararEmail } from "@/presentation/lib/cn";
 import { Alert, ListaErrores } from "@/presentation/components/ui/alert";
 import { Button } from "@/presentation/components/ui/button";
@@ -49,7 +48,6 @@ function iconoServicio(nombre: string) {
 export function SolicitarTurno() {
   const router = useRouter();
   const usuario = useSesionStore((s) => s.usuario);
-  const guardar = useTurnosStore((s) => s.guardar);
   const [paso, setPaso] = useState(0);
   const [entidadId, setEntidadId] = useState("");
   const [puntoId, setPuntoId] = useState("");
@@ -76,8 +74,7 @@ export function SolicitarTurno() {
     setErrores([]);
     setEnviando(true);
     try {
-      const turno = await casosDeUso.solicitarTurno.ejecutar(servicio.id, punto.id);
-      guardar(turno, { servicioNombre: servicio.nombre, entidadNombre: entidad.nombre });
+      await casosDeUso.solicitarTurno.ejecutar(servicio.id, punto.id);
       router.push("/turnos?nuevo=1");
     } catch (e) {
       setErrores(e instanceof AppError ? e.mensajes : [mensajeDeError(e)]);
