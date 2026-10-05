@@ -22,8 +22,18 @@ export class HttpCatalogoRepository implements CatalogoRepository {
     return data;
   }
 
-  async crearServicio(nombre: string, entidadId: string): Promise<Servicio> {
-    const { data } = await internalApi.post<ServicioDto>("/bff/servicios", { nombre, entidadId });
+  async crearServicio(
+    codigoServicio: string,
+    nombre: string,
+    tiempoPromedioMin: number,
+    entidadId: string,
+  ): Promise<Servicio> {
+    const { data } = await internalApi.post<ServicioDto>("/bff/servicios", {
+      codigoServicio,
+      nombre,
+      tiempoPromedioMin,
+      entidadId,
+    });
     return data;
   }
 
