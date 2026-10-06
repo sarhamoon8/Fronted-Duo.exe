@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { ArrowRight, Bell, BellDot, CalendarPlus, Clock, Headphones, History, Pill, Plus, Ticket, TicketPlus } from "lucide-react";
-import { codigoCorto, estimarEspera } from "@/core/domain/entities/turno";
-import { useMontado } from "@/presentation/hooks/use-montado";
+import { codigoTurno, estaActivo, estimarEspera } from "@/core/domain/entities/turno";
+import { useMisTurnos, type TurnoConNombres } from "@/presentation/hooks/use-mis-turnos";
 import { cn, fechaLarga, formatearHora, saludo } from "@/presentation/lib/cn";
 import { RESERVA_LISTA } from "@/presentation/mocks/demo";
 import { useSesionStore } from "@/presentation/stores/sesion.store";
-import { turnoActivoDe, useMisTurnos, type TurnoGuardado } from "@/presentation/stores/turnos.store";
 import { Alert } from "@/presentation/components/ui/alert";
 import { BotonEnlace, claseBoton } from "@/presentation/components/ui/button";
 import { Card, EncabezadoPagina, Pildora } from "@/presentation/components/ui/card";
@@ -16,9 +15,8 @@ import { ESTADO_TURNO_ETIQUETA } from "@/core/domain/entities/turno";
 /** Inicio del paciente (Figma: "Dashboard del paciente" y su versión móvil). */
 export function DashboardPaciente() {
   const usuario = useSesionStore((s) => s.usuario);
-  const turnos = useMisTurnos(usuario?.id);
-  const montado = useMontado();
-  const activo = montado ? turnoActivoDe(turnos) : null;
+  const { turnos, cargando } = useMisTurnos();
+  const activo = cargando ? null : turnos.find((t) => estaActivo(t.estado)) ?? null;
   const espera = activo ? estimarEspera(activo.posicion) : null;
   const primerNombre = usuario?.nombre.split(" ")[0] ?? "";
 
@@ -139,7 +137,7 @@ export function cercania(posicion: number | null) {
   return posicion ? Math.round(100 / posicion) : 100;
 }
 
-function TurnoEnCurso({ turno }: { turno: TurnoGuardado }) {
+function TurnoEnCurso({ turno }: { turno: TurnoConNombres }) {
   const posicion = turno.posicion;
   const textoPosicion = posicion ? `Posición ${posicion} en la fila` : "Estás siendo atendido";
   const detalle = `Solicitado a las ${formatearHora(turno.creadoEn)} · ${turno.servicioNombre}`;
@@ -157,7 +155,7 @@ function TurnoEnCurso({ turno }: { turno: TurnoGuardado }) {
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-[11px] text-white/80">Tu código</p>
-            <p className="whitespace-nowrap text-[34px] leading-tight sm:text-[42px]">{codigoCorto(turno.id)}</p>
+            <p className="whitespace-nowrap text-[34px] leading-tight sm:text-[42px]">{codigoTurno(turno)}</p>
           </div>
           <div className="text-right">
             <p className="text-[11px] text-white/80">Posición</p>
@@ -187,7 +185,7 @@ function TurnoEnCurso({ turno }: { turno: TurnoGuardado }) {
         <div className="flex items-center gap-6 rounded-xl bg-neutro-2 p-5">
           <div className="min-w-[150px] shrink-0">
             <p className="text-[11px] font-bold uppercase text-tinta-tenue">Tu código</p>
-            <p className="whitespace-nowrap text-[30px] font-extrabold text-cerceta-oscuro xl:text-[34px]">{codigoCorto(turno.id)}</p>
+            <p className="whitespace-nowrap text-[30px] font-extrabold text-cerceta-oscuro xl:text-[34px]">{codigoTurno(turno)}</p>
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <p className="text-[15px] font-bold text-tinta">{textoPosicion}</p>

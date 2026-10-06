@@ -93,16 +93,22 @@ export function PanelAdmin() {
   }
 
   /* ---- Servicio ---- */
-  const [servicio, setServicio] = useState({ nombre: "", entidadId: "" });
+  const vacioServicio = { codigoServicio: "", nombre: "", tiempoPromedioMin: "", entidadId: "" };
+  const [servicio, setServicio] = useState(vacioServicio);
   const mServicio = useMutacion();
   async function crearServicio(e: FormEvent) {
     e.preventDefault();
     const ok = await mServicio.correr(async () => {
-      const r = await casosDeUso.crearServicio.ejecutar(servicio.nombre, servicio.entidadId);
+      const r = await casosDeUso.crearServicio.ejecutar(
+        servicio.codigoServicio,
+        servicio.nombre,
+        Number(servicio.tiempoPromedioMin),
+        servicio.entidadId,
+      );
       return `Servicio "${r.nombre}" registrado.`;
     });
     if (ok) {
-      setServicio((s) => ({ ...s, nombre: "" }));
+      setServicio((s) => ({ ...vacioServicio, entidadId: s.entidadId }));
       void recargar();
     }
   }
@@ -157,7 +163,9 @@ export function PanelAdmin() {
                 <option key={e.id} value={e.id}>{e.nombre}</option>
               ))}
             </Select>
+            <Input etiqueta="Código del servicio" value={servicio.codigoServicio} onChange={(e) => setServicio((s) => ({ ...s, codigoServicio: e.target.value }))} placeholder="Ej.: DISP-001" required />
             <Input etiqueta="Nombre del servicio" value={servicio.nombre} onChange={(e) => setServicio((s) => ({ ...s, nombre: e.target.value }))} placeholder="Ej.: Dispensación de medicamentos" required />
+            <Input etiqueta="Tiempo promedio (minutos)" type="number" min={1} step={1} value={servicio.tiempoPromedioMin} onChange={(e) => setServicio((s) => ({ ...s, tiempoPromedioMin: e.target.value }))} placeholder="Ej.: 10" required />
             <Button type="submit" cargando={mServicio.enviando}>Registrar servicio</Button>
           </form>
         </Card>

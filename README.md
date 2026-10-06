@@ -8,6 +8,8 @@ El diseño sigue el archivo de Figma **FilaCero · Frontend simplificado** (escr
 Se adapta **sin modificaciones** al backend [Backend-Duo.exe](https://github.com/sarhamoon8/Backend-Duo.exe)
 (NestJS + Prisma + JWT).
 
+📚 Documentación completa, capa por capa: [`docs/frontend/`](./docs/frontend/README.md).
+
 ## Puesta en marcha
 
 ```bash

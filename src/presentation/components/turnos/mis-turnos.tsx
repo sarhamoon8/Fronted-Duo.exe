@@ -5,12 +5,11 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, Clock, MapPin, Megaphone, Plus, RefreshCw, Smartphone, Ticket, TriangleAlert } from "lucide-react";
 import { AppError, mensajeDeError } from "@/core/domain/errors";
-import { ESTADO_TURNO_ETIQUETA, codigoCorto, estimarEspera, puedeCancelar } from "@/core/domain/entities/turno";
+import { ESTADO_TURNO_ETIQUETA, codigoTurno, estaActivo, estimarEspera, puedeCancelar } from "@/core/domain/entities/turno";
 import { casosDeUso } from "@/infrastructure/container";
 import { useAhora } from "@/presentation/hooks/use-ahora";
-import { useMontado } from "@/presentation/hooks/use-montado";
+import { useMisTurnos, type TurnoConNombres } from "@/presentation/hooks/use-mis-turnos";
 import { useSesionStore } from "@/presentation/stores/sesion.store";
-import { turnoActivoDe, useMisTurnos, useTurnosStore, type TurnoGuardado } from "@/presentation/stores/turnos.store";
 import { cn, enmascararEmail, formatearHora, haceCuanto } from "@/presentation/lib/cn";
 import { Alert, ListaErrores } from "@/presentation/components/ui/alert";
 import { BadgeEstadoTurno } from "@/presentation/components/ui/badge";
@@ -23,13 +22,20 @@ import { BarraProgreso, cercania } from "@/presentation/components/paciente/dash
 /** Seguimiento del turno activo del paciente ("Mi turno"). */
 export function MisTurnos() {
   const usuario = useSesionStore((s) => s.usuario);
-  const turnos = useMisTurnos(usuario?.id);
-  const montado = useMontado();
+  const { turnos, cargando, error, actualizadoEn, recargar } = useMisTurnos();
   const params = useSearchParams();
 
-  if (!montado) return <Spinner etiqueta="Cargando tu turno…" />;
-  const activo = turnoActivoDe(turnos);
-  const otrosActivos = turnos.filter((t) => t !== activo && (t.estado === "PENDIENTE" || t.estado === "EN_CURSO"));
+  if (cargando) return <Spinner etiqueta="Cargando tu turno…" />;
+  if (error) {
+    return (
+      <>
+        <EncabezadoPagina titulo="Mis turnos" />
+        <Alert tono="error" titulo="No se pudo cargar tu turno">{error}</Alert>
+      </>
+    );
+  }
+  const activo = turnos.find((t) => estaActivo(t.estado)) ?? null;
+  const otrosActivos = turnos.filter((t) => t !== activo && estaActivo(t.estado));
 
   if (!activo) {
     return (
@@ -52,10 +58,10 @@ export function MisTurnos() {
     <>
       {params.get("nuevo") && (
         <Alert tono="exito" titulo="¡Turno asignado!" className="mb-6">
-          Guarda tu código {codigoCorto(activo.id)}. Te avisaremos cuando se acerque tu llamado.
+          Guarda tu código {codigoTurno(activo)}. Te avisaremos cuando se acerque tu llamado.
         </Alert>
       )}
-      <Seguimiento turno={activo} nombre={usuario?.nombre ?? ""} email={usuario?.email ?? ""} />
+      <Seguimiento turno={activo} nombre={usuario?.nombre ?? ""} email={usuario?.email ?? ""} actualizadoEn={actualizadoEn} recargar={recargar} />
 
       {otrosActivos.length > 0 && (
         <Card className="mt-6" aria-labelledby="t-otros">
@@ -64,7 +70,7 @@ export function MisTurnos() {
             {otrosActivos.map((t) => (
               <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <span>
-                  <span className="font-mono font-semibold text-cerceta-oscuro">{codigoCorto(t.id)}</span>{" "}
+                  <span className="font-mono font-semibold text-cerceta-oscuro">{codigoTurno(t)}</span>{" "}
                   <span className="text-sm">{t.servicioNombre} · {t.entidadNombre}</span>
                 </span>
                 <BadgeEstadoTurno estado={t.estado} />
@@ -77,9 +83,20 @@ export function MisTurnos() {
   );
 }
 
-function Seguimiento({ turno, nombre, email }: { turno: TurnoGuardado; nombre: string; email: string }) {
+function Seguimiento({
+  turno,
+  nombre,
+  email,
+  actualizadoEn,
+  recargar,
+}: {
+  turno: TurnoConNombres;
+  nombre: string;
+  email: string;
+  actualizadoEn: number | null;
+  recargar: () => void;
+}) {
   const ahora = useAhora();
-  const actualizar = useTurnosStore((s) => s.actualizar);
   const [cancelando, setCancelando] = useState(false);
   const [errores, setErrores] = useState<string[]>([]);
 
@@ -88,14 +105,15 @@ function Seguimiento({ turno, nombre, email }: { turno: TurnoGuardado; nombre: s
   const antes = posicion ? posicion - 1 : 0;
   const espera = estimarEspera(posicion) ?? 0;
   const avance = cercania(posicion);
-  const actualizado = haceCuanto(turno.actualizadoEn, ahora);
+  const actualizado = haceCuanto(new Date(actualizadoEn ?? ahora), ahora);
 
   async function cancelar() {
-    if (!window.confirm(`¿Cancelar el turno ${codigoCorto(turno.id)}?`)) return;
+    if (!window.confirm(`¿Cancelar el turno ${codigoTurno(turno)}?`)) return;
     setErrores([]);
     setCancelando(true);
     try {
-      actualizar(await casosDeUso.cancelarTurno.ejecutar(turno));
+      await casosDeUso.cancelarTurno.ejecutar(turno);
+      recargar();
     } catch (e) {
       setErrores(e instanceof AppError ? e.mensajes : [mensajeDeError(e)]);
     } finally {
@@ -143,7 +161,7 @@ function Seguimiento({ turno, nombre, email }: { turno: TurnoGuardado; nombre: s
               {ESTADO_TURNO_ETIQUETA[turno.estado]}
             </Pildora>
           </div>
-          <p className="whitespace-nowrap text-center text-[44px] leading-none tracking-tight sm:text-[56px]">{codigoCorto(turno.id)}</p>
+          <p className="whitespace-nowrap text-center text-[44px] leading-none tracking-tight sm:text-[56px]">{codigoTurno(turno)}</p>
           <div className="rounded-xl bg-white/[0.09] p-3.5 text-center">
             <p className="text-sm font-bold">{nombre}</p>
             <p className="mt-1 text-xs text-white/80">{enmascararEmail(email)}</p>
