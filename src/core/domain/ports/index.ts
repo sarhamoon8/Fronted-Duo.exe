@@ -18,7 +18,12 @@ export interface CatalogoRepository {
   listarEntidades(): Promise<EntidadMedica[]>;
   crearEntidad(nombre: string): Promise<EntidadMedica>;
   listarServicios(entidadId?: string): Promise<Servicio[]>;
-  crearServicio(nombre: string, entidadId: string): Promise<Servicio>;
+  crearServicio(
+    codigoServicio: string,
+    nombre: string,
+    tiempoPromedioMin: number,
+    entidadId: string,
+  ): Promise<Servicio>;
   listarPuntos(entidadId?: string): Promise<PuntoDispensacion[]>;
 }
 

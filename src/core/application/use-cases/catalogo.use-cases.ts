@@ -34,12 +34,16 @@ export class CrearEntidadUseCase {
 
 export class CrearServicioUseCase {
   constructor(private readonly repo: CatalogoRepository) {}
-  ejecutar(nombre: string, entidadId: string) {
+  ejecutar(codigoServicio: string, nombre: string, tiempoPromedioMin: number, entidadId: string) {
     const errores: string[] = [];
+    if (!codigoServicio.trim()) errores.push("El código del servicio es obligatorio.");
     if (!nombre.trim()) errores.push("El nombre del servicio es obligatorio.");
+    if (!Number.isInteger(tiempoPromedioMin) || tiempoPromedioMin < 1) {
+      errores.push("El tiempo promedio debe ser un número entero mayor a 0.");
+    }
     if (!entidadId) errores.push("Selecciona la entidad médica.");
     if (errores.length) throw new AppError(errores, 400);
-    return this.repo.crearServicio(nombre.trim(), entidadId);
+    return this.repo.crearServicio(codigoServicio.trim(), nombre.trim(), tiempoPromedioMin, entidadId);
   }
 }
 
