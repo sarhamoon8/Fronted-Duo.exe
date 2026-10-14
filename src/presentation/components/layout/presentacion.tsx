@@ -8,12 +8,12 @@ const LINEA_1 = "Bienvenido a FilaCero,";
 const LINEA_2_PREFIJO = "donde transformamos la espera en";
 const LINEA_2_DESTACADO = "tranquilidad.";
 
-// Tiempos (ms) configurados para que fluya como una conversación
+// Tiempos para un Fade In / Out suave 
 const RETRASO_LINEA_1 = 600;
 const RETRASO_LINEA_2 = 2200; 
-const RETRASO_PUNTOS = 4000;
-const DURACION_MS = 5500; // Tiempo antes de empezar a desvanecer todo
-const SALIDA_MS = 800; // Duración del desvanecimiento final
+const RETRASO_PUNTOS = 3500;
+const DURACION_MS = 8000; // Tiempo que permanece visible antes de empezar a desaparecer
+const SALIDA_MS = 3000; // Aumentado a 2.5s para que el Fade Out sea lento y suave
 
 let yaMostrada = false;
 
@@ -26,10 +26,10 @@ export function Presentacion() {
     yaMostrada = true;
     document.body.style.overflow = "hidden";
 
-    // Un pequeñísimo retraso para que el DOM inicial (opacidad 0) se dibuje
-    // y la transición hacia la opacidad 1 se ejecute suavemente.
+    // Inicia el Fade In
     const tEntrada = setTimeout(() => setAnimarEntrada(true), 50);
 
+    // Inicia el Fade Out después de DURACION_MS
     const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const tSalida = setTimeout(() => setFase("saliendo"), reducido ? 1500 : DURACION_MS);
     
@@ -48,16 +48,17 @@ export function Presentacion() {
 
   useEffect(() => {
     if (fase !== "saliendo") return;
+    // Remueve el componente por completo tras el Fade Out
     const t = setTimeout(() => setFase("oculta"), SALIDA_MS);
     return () => clearTimeout(t);
   }, [fase]);
 
   if (fase === "oculta") return null;
 
-  // Clases compartidas para el efecto de aparición (fade-in + slide-up + unblur)
+  // 1. EL CAMBIO PRINCIPAL: Solo animamos la opacidad (Fade In puro)
   const clasesTransicion = cn(
-    "transition-all duration-[1200ms] ease-out",
-    animarEntrada ? "opacity-100 translate-y-0 blur-none" : "opacity-0 translate-y-4 blur-[4px]"
+    "transition-opacity duration-[2000ms] ease-in-out",
+    animarEntrada ? "opacity-100" : "opacity-0"
   );
 
   return (
@@ -67,9 +68,9 @@ export function Presentacion() {
       onClick={() => setFase("saliendo")}
       className={cn(
         "fixed inset-0 z-50 flex cursor-pointer flex-col items-center justify-center overflow-hidden bg-cerceta-oscuro px-6 text-center text-white",
-        // Transición de salida global de la pantalla
-        "transition-opacity duration-[800ms] ease-in-out",
-        fase === "saliendo" ? "opacity-0 pointer-events-none" : "opacity-100"
+        // 2. EL SEGUNDO CAMBIO: El contenedor completo hace un Fade Out lento al salir
+        "transition-opacity ease-in-out",
+        fase === "saliendo" ? "opacity-0 pointer-events-none duration-[2500ms]" : "opacity-100 duration-0"
       )}
     >
       <span aria-hidden="true" className="absolute size-[520px] rounded-full bg-cerceta/40 blur-3xl" />
@@ -78,8 +79,8 @@ export function Presentacion() {
       <div className="relative flex max-w-3xl flex-col items-center gap-8">
         <span aria-hidden="true" className={cn(
           "flex size-20 items-center justify-center rounded-2xl bg-white text-cerceta-oscuro shadow-tarjeta sm:size-24",
-          "transition-all duration-1000 ease-out",
-          animarEntrada ? "opacity-100 scale-100" : "opacity-0 scale-90"
+          "transition-opacity duration-[2000ms] ease-in-out",
+          animarEntrada ? "opacity-100" : "opacity-0"
         )}>
           <TicketCheck className="size-10 sm:size-12" strokeWidth={1.75} />
         </span>
@@ -99,15 +100,15 @@ export function Presentacion() {
           </span>
         </p>
 
-        {/* Puntos animándose uno por uno */}
+        {/* Puntos animándose uno por uno con simple opacidad */}
         <span aria-hidden="true" className="mt-4 flex gap-2.5">
           {[0, 1, 2, 3, 4].map((i) => (
             <span 
               key={i} 
               className={cn(
                 "size-2.5 rounded-full bg-esmeralda",
-                "transition-all duration-700 ease-out",
-                animarEntrada ? "opacity-100 scale-100" : "opacity-0 scale-50"
+                "transition-opacity duration-[1000ms] ease-in-out",
+                animarEntrada ? "opacity-100" : "opacity-0"
               )} 
               style={{ transitionDelay: `${RETRASO_PUNTOS + i * 200}ms` }} 
             />
@@ -119,7 +120,7 @@ export function Presentacion() {
         type="button"
         onClick={() => setFase("saliendo")}
         className={cn(
-          "absolute bottom-6 right-6 rounded-lg px-3 py-2 text-sm font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-colors duration-300 delay-[3000ms]",
+          "absolute bottom-6 right-6 rounded-lg px-3 py-2 text-sm font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all duration-1000 delay-[4000ms]",
           animarEntrada ? "opacity-100" : "opacity-0"
         )}
       >

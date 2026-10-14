@@ -1,5 +1,6 @@
 # Herramientas locales
 .claude/
+AGENTS.md
 
 # Dependencias
 node_modules/
