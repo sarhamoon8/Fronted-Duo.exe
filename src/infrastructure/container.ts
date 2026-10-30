@@ -11,6 +11,7 @@ import {
 } from "@/core/application/use-cases/auth.use-cases";
 import {
   CrearEntidadUseCase,
+  CrearPuntoUseCase,
   CrearServicioUseCase,
   CrearUsuarioUseCase,
   ListarEntidadesUseCase,
@@ -25,9 +26,27 @@ import {
   MisTurnosUseCase,
   SolicitarTurnoUseCase,
 } from "@/core/application/use-cases/turnos.use-cases";
-import { ListarVentanillasUseCase } from "@/core/application/use-cases/ventanillas.use-cases";
+import {
+  ConsultarExistenciasUseCase,
+  CrearMedicamentoUseCase,
+  ListarMedicamentosUseCase,
+  RegistrarExistenciaUseCase,
+} from "@/core/application/use-cases/medicamentos.use-cases";
+import {
+  MarcarNotificacionLeidaUseCase,
+  MisNotificacionesUseCase,
+} from "@/core/application/use-cases/notificaciones.use-cases";
+import {
+  MisInscripcionesEsperaUseCase,
+  SalirListaEsperaUseCase,
+  UnirseListaEsperaUseCase,
+} from "@/core/application/use-cases/lista-espera.use-cases";
+import { CrearVentanillaUseCase, ListarVentanillasUseCase } from "@/core/application/use-cases/ventanillas.use-cases";
 import { HttpAuthRepository } from "./repositories/auth.repository";
 import { HttpCatalogoRepository } from "./repositories/catalogo.repository";
+import { HttpListaEsperaRepository } from "./repositories/lista-espera.repository";
+import { HttpMedicamentoRepository } from "./repositories/medicamento.repository";
+import { HttpNotificacionRepository } from "./repositories/notificacion.repository";
 import { HttpTurnoRepository } from "./repositories/turno.repository";
 import { HttpUsuarioRepository } from "./repositories/usuario.repository";
 import { HttpVentanillaRepository } from "./repositories/ventanilla.repository";
@@ -37,6 +56,9 @@ const catalogoRepo = new HttpCatalogoRepository();
 const turnoRepo = new HttpTurnoRepository();
 const usuarioRepo = new HttpUsuarioRepository();
 const ventanillaRepo = new HttpVentanillaRepository();
+const listaEsperaRepo = new HttpListaEsperaRepository();
+const notificacionRepo = new HttpNotificacionRepository();
+const medicamentoRepo = new HttpMedicamentoRepository();
 
 export const casosDeUso = {
   iniciarSesion: new IniciarSesionUseCase(authRepo),
@@ -48,8 +70,10 @@ export const casosDeUso = {
   listarPuntos: new ListarPuntosUseCase(catalogoRepo),
   crearEntidad: new CrearEntidadUseCase(catalogoRepo),
   crearServicio: new CrearServicioUseCase(catalogoRepo),
+  crearPunto: new CrearPuntoUseCase(catalogoRepo),
 
   listarVentanillas: new ListarVentanillasUseCase(ventanillaRepo),
+  crearVentanilla: new CrearVentanillaUseCase(ventanillaRepo),
 
   solicitarTurno: new SolicitarTurnoUseCase(turnoRepo),
   cancelarTurno: new CancelarTurnoUseCase(turnoRepo),
@@ -59,5 +83,17 @@ export const casosDeUso = {
 
   listarUsuarios: new ListarUsuariosUseCase(usuarioRepo),
   crearUsuario: new CrearUsuarioUseCase(usuarioRepo),
+
+  unirseListaEspera: new UnirseListaEsperaUseCase(listaEsperaRepo),
+  misInscripcionesEspera: new MisInscripcionesEsperaUseCase(listaEsperaRepo),
+  salirListaEspera: new SalirListaEsperaUseCase(listaEsperaRepo),
+
+  misNotificaciones: new MisNotificacionesUseCase(notificacionRepo),
+  marcarNotificacionLeida: new MarcarNotificacionLeidaUseCase(notificacionRepo),
+
+  listarMedicamentos: new ListarMedicamentosUseCase(medicamentoRepo),
+  consultarExistencias: new ConsultarExistenciasUseCase(medicamentoRepo),
+  crearMedicamento: new CrearMedicamentoUseCase(medicamentoRepo),
+  registrarExistencia: new RegistrarExistenciaUseCase(medicamentoRepo),
 
 } as const;
