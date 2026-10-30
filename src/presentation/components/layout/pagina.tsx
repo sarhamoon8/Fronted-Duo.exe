@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, ChevronDown, LogOut, UserX } from "lucide-react";
 import { casosDeUso } from "@/infrastructure/container";
+import { useNotificaciones } from "@/presentation/hooks/use-notificaciones";
 import { useSesionStore } from "@/presentation/stores/sesion.store";
 import { useUiStore } from "@/presentation/stores/ui.store";
 import { cn } from "@/presentation/lib/cn";
@@ -46,24 +48,28 @@ export function iniciales(nombre: string) {
 }
 
 function BotonNotificaciones({ oscuro = false }: { oscuro?: boolean }) {
+  const { sinLeer } = useNotificaciones();
+  const cantidad = sinLeer.length;
   return (
-    <button
-      type="button"
-      aria-label="Notificaciones (1 nueva)"
+    <Link
+      href="/notificaciones"
+      aria-label={cantidad > 0 ? `Notificaciones (${cantidad} sin leer)` : "Notificaciones"}
       className={cn(
         "relative flex size-10 shrink-0 items-center justify-center rounded-full lg:size-[42px]",
         oscuro ? "bg-white/10 text-white hover:bg-white/15" : "border border-borde bg-neutro-2 text-tinta hover:bg-neutro",
       )}
     >
       <Bell className="size-[18px]" strokeWidth={1.75} />
-      <span
-        aria-hidden="true"
-        className={cn(
-          "absolute right-2.5 top-2.5 size-2 rounded-full ring-2",
-          oscuro ? "bg-esmeralda ring-cerceta-oscuro" : "bg-rojo ring-neutro-2",
-        )}
-      />
-    </button>
+      {cantidad > 0 && (
+        <span
+          aria-hidden="true"
+          className={cn(
+            "absolute right-2.5 top-2.5 size-2 rounded-full ring-2",
+            oscuro ? "bg-esmeralda ring-cerceta-oscuro" : "bg-rojo ring-neutro-2",
+          )}
+        />
+      )}
+    </Link>
   );
 }
 
