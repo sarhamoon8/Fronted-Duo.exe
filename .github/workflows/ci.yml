@@ -1,0 +1,145 @@
+name: CI
+
+# Corre en cada push y cada PR hacia desarrollo, pre-produccion y main
+# (mismo patrón que filacero-backend/.github/workflows/ci.yml).
+on:
+  push:
+    branches: [desarrollo, pre-produccion, main]
+  pull_request:
+    branches: [desarrollo, pre-produccion, main]
+
+jobs:
+  # Rápido: no necesita el backend ni una base de datos.
+  unitarias:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci --legacy-peer-deps
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Pruebas unitarias (con cobertura)
+        run: npm run test:cov
+
+      - name: Build de producción
+        run: npm run build
+        env:
+          API_URL: http://localhost:3000
+          AUTH_COOKIE_NAME: filacero_token
+
+  # Más lento: levanta el backend real (otro repo) + Postgres, porque
+  # integración y e2e prueban contra el BFF real hablando con el backend
+  # real, no contra mocks (ver integration/README.md y e2e/*.spec.ts).
+  integracion-y-e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: filacero
+          POSTGRES_PASSWORD: filacero
+          POSTGRES_DB: filacero_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U filacero -d filacero_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://filacero:filacero@localhost:5432/filacero_db?schema=public
+      JWT_SECRET: ci-secret-no-es-produccion
+      API_URL: http://localhost:3000
+      AUTH_COOKIE_NAME: filacero_token
+
+    steps:
+      - name: Descargar el frontend
+        uses: actions/checkout@v4
+        with:
+          path: frontend
+
+      - name: Descargar el backend (filacero-backend, rama desarrollo)
+        uses: actions/checkout@v4
+        with:
+          repository: sarhamoon8/Backend-Duo.exe
+          ref: desarrollo
+          path: backend
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Instalar dependencias del backend
+        working-directory: backend
+        run: npm ci
+
+      - name: Migrar y sembrar datos de demo del backend
+        working-directory: backend
+        run: |
+          npx prisma migrate deploy
+          npx prisma db seed
+
+      - name: Levantar el backend en segundo plano
+        working-directory: backend
+        run: nohup npm run start:dev > backend.log 2>&1 &
+
+      - name: Esperar a que el backend responda
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000/servicios > /dev/null && exit 0
+            sleep 2
+          done
+          echo "El backend no respondió a tiempo" && cat backend/backend.log && exit 1
+
+      - name: Instalar dependencias del frontend
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Instalar navegador de Playwright (Chromium)
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Levantar el frontend en segundo plano
+        working-directory: frontend
+        run: nohup npm run dev > frontend.log 2>&1 &
+
+      - name: Esperar a que el frontend responda
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3001/login > /dev/null && exit 0
+            sleep 2
+          done
+          echo "El frontend no respondió a tiempo" && cat frontend/frontend.log && exit 1
+
+      - name: Pruebas de integración (BFF contra el backend real)
+        working-directory: frontend
+        run: npm run test:integration
+
+      - name: Pruebas end-to-end (Playwright)
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Subir trazas de Playwright si algo falló
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/test-results
+          retention-days: 7
