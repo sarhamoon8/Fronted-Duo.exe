@@ -3,6 +3,7 @@ import type { CatalogoRepository, UsuarioRepository } from "../../domain/ports";
 import { AppError } from "../../domain/errors";
 import {
   CrearEntidadUseCase,
+  CrearPuntoUseCase,
   CrearServicioUseCase,
   CrearUsuarioUseCase,
   ListarEntidadesUseCase,
@@ -18,6 +19,7 @@ function crearCatalogoRepoFalso(overrides: Partial<CatalogoRepository> = {}): Ca
     listarServicios: vi.fn(),
     crearServicio: vi.fn(),
     listarPuntos: vi.fn(),
+    crearPunto: vi.fn(),
     ...overrides,
   };
 }
@@ -131,5 +133,27 @@ describe("CrearUsuarioUseCase", () => {
     expect(repo.crear).toHaveBeenCalledWith(
       expect.objectContaining({ email: "ana@example.com", telefono: undefined }),
     );
+  });
+});
+
+describe("CrearPuntoUseCase", () => {
+  const datos = { entidadId: "e1", nombreSede: "Sede Norte", direccion: "Calle 1", ciudad: "Bogotá", capacidadAtencion: 20 };
+
+  it("valida los campos obligatorios y la capacidad", () => {
+    const repo = crearCatalogoRepoFalso();
+    const useCase = new CrearPuntoUseCase(repo);
+
+    expect(() => useCase.ejecutar({ ...datos, entidadId: "", nombreSede: " ", capacidadAtencion: 0 })).toThrow(AppError);
+    expect(repo.crearPunto).not.toHaveBeenCalled();
+  });
+
+  it("delega en el repositorio cuando los datos son válidos", async () => {
+    const repo = crearCatalogoRepoFalso({ crearPunto: vi.fn().mockResolvedValue({ id: "p1", ...datos, telefonoContacto: null }) });
+    const useCase = new CrearPuntoUseCase(repo);
+
+    const creado = await useCase.ejecutar(datos);
+
+    expect(repo.crearPunto).toHaveBeenCalledWith(datos);
+    expect(creado.id).toBe("p1");
   });
 });
