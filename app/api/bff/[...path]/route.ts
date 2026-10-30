@@ -16,7 +16,7 @@ import { leerToken } from "@/server/session";
  * propios Route Handlers porque debe gestionar la cookie.
  */
 const RECURSOS_PERMITIDOS =
-  /^(entidades-medicas|servicios|puntos-dispensacion|ventanillas|turnos|usuarios|lista-espera|notificaciones|medicamentos|inventario|profesionales|logs)(\/|$)/;
+  /^(entidades-medicas|servicios|puntos-dispensacion|ventanillas|turnos|usuarios|lista-espera|notificaciones|medicamentos|inventario|profesionales)(\/|$)/;
 const METODOS_CON_CUERPO = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 async function proxy(request: NextRequest, ctx: RouteContext<"/api/bff/[...path]">) {
