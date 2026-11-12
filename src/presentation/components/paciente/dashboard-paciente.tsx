@@ -9,7 +9,7 @@ import { RESERVA_LISTA } from "@/presentation/mocks/demo";
 import { useSesionStore } from "@/presentation/stores/sesion.store";
 import { Alert } from "@/presentation/components/ui/alert";
 import { BotonEnlace, claseBoton } from "@/presentation/components/ui/button";
-import { Card, EncabezadoPagina, Pildora } from "@/presentation/components/ui/card";
+import { Card, EncabezadoPagina, MarcaDemo, Pildora } from "@/presentation/components/ui/card";
 import { ESTADO_TURNO_ETIQUETA } from "@/core/domain/entities/turno";
 
 /** Inicio del paciente (Figma: "Dashboard del paciente" y su versión móvil). */
@@ -233,7 +233,10 @@ function ReservaLista() {
         <span aria-hidden="true" className="flex size-10 items-center justify-center rounded-xl bg-menta text-esmeralda-profundo lg:size-11">
           <Pill className="size-5" strokeWidth={1.75} />
         </span>
-        <Pildora tono="menta">Reservado</Pildora>
+        <div className="flex items-center gap-2">
+          <MarcaDemo />
+          <Pildora tono="menta">Reservado</Pildora>
+        </div>
       </div>
       <div>
         <h2 id="t-reserva" className="text-[17px] text-titulo lg:text-lg">Reserva lista para recoger</h2>
