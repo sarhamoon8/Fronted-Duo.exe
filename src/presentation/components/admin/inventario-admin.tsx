@@ -215,7 +215,7 @@ export function InventarioAdmin() {
                 {lotes.map((l) => {
                   const nivel = nivelDisponibilidad(l.cantidadDisponible);
                   return (
-                    <tr key={l.id} className="border-b border-borde text-tinta">
+                    <tr key={l.id} className="border-b border-borde text-tinta transition-colors hover:bg-neutro-2">
                       <td className="px-3.5 py-3 font-bold">{nombreMedicamento.get(l.medicamentoId) ?? "Medicamento"}</td>
                       <td className="px-3.5">{l.lote}</td>
                       <td className="px-3.5 text-right font-bold">{l.cantidadDisponible}</td>
