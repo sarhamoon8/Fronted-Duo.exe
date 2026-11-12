@@ -1,20 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { EntidadMedica, Servicio } from "@/core/domain/entities/catalogo";
+import type { EntidadMedica, Servicio, Ventanilla } from "@/core/domain/entities/catalogo";
 import type { Turno } from "@/core/domain/entities/turno";
+import { type ExistenciaMedicamento, type Medicamento, type NivelDisponibilidad, nivelDisponibilidad } from "@/core/domain/entities/medicamento";
 import { mensajeDeError } from "@/core/domain/errors";
 import { casosDeUso } from "@/infrastructure/container";
 import { esHoy, horaBogota, minutosDesde } from "@/presentation/lib/cn";
 
 export const META_ESPERA_MIN = 30;
 export const HORAS_JORNADA = Array.from({ length: 12 }, (_, i) => 7 + i); // 7 a. m. – 6 p. m.
+/** Cuántos medicamentos con baja/nula disponibilidad mostrar en el resumen. */
+const MAX_INVENTARIO_CRITICO = 5;
 
 export interface FilaServicio {
   nombre: string;
   sedes: number;
   enFila: number;
   esperaMin: number | null;
+}
+
+export interface ItemInventarioCritico {
+  medicamentoId: string;
+  nombre: string;
+  unidades: number;
+  sedesConStock: number;
+  nivel: NivelDisponibilidad;
 }
 
 export interface ResumenOperativo {
@@ -25,13 +36,25 @@ export interface ResumenOperativo {
   nivelServicio: number | null;
   demandaPorHora: { hora: number; turnos: number }[];
   porServicio: FilaServicio[];
+  ventanillasActivas: number;
+  ventanillasTotal: number;
+  inventarioCritico: ItemInventarioCritico[];
 }
 
 /**
  * Indicadores calculados en el cliente a partir de los endpoints existentes:
- * GET /entidades-medicas, GET /servicios y GET /turnos/servicio/:id por servicio.
+ * GET /entidades-medicas, GET /servicios, GET /turnos/servicio/:id por servicio,
+ * GET /ventanillas e GET /inventario por punto de dispensación.
  */
-export function calcularResumen(entidades: EntidadMedica[], servicios: Servicio[], turnosPorServicio: Turno[][], ahora = Date.now()): ResumenOperativo {
+export function calcularResumen(
+  entidades: EntidadMedica[],
+  servicios: Servicio[],
+  turnosPorServicio: Turno[][],
+  ahora = Date.now(),
+  ventanillas: Ventanilla[] = [],
+  medicamentos: Medicamento[] = [],
+  existenciasPorPunto: ExistenciaMedicamento[][] = [],
+): ResumenOperativo {
   const todos = turnosPorServicio.flat();
   const hoy = todos.filter((t) => esHoy(t.creadoEn));
   const atendidosHoy = hoy.filter((t) => t.estado === "ATENDIDO").length;
@@ -61,6 +84,26 @@ export function calcularResumen(entidades: EntidadMedica[], servicios: Servicio[
     }))
     .sort((a, b) => b.enFila - a.enFila);
 
+  const nombrePorMedicamento = new Map(medicamentos.map((m) => [m.id, `${m.nombreGenerico} ${m.concentracion}`]));
+  const totalesPorMedicamento = new Map<string, { unidades: number; sedes: Set<string> }>();
+  existenciasPorPunto.flat().forEach((ex) => {
+    const acc = totalesPorMedicamento.get(ex.medicamentoId) ?? { unidades: 0, sedes: new Set<string>() };
+    acc.unidades += Math.max(ex.cantidadDisponible, 0);
+    if (ex.cantidadDisponible > 0) acc.sedes.add(ex.puntoId);
+    totalesPorMedicamento.set(ex.medicamentoId, acc);
+  });
+  const inventarioCritico = [...totalesPorMedicamento.entries()]
+    .map(([medicamentoId, v]) => ({
+      medicamentoId,
+      nombre: nombrePorMedicamento.get(medicamentoId) ?? "Medicamento",
+      unidades: v.unidades,
+      sedesConStock: v.sedes.size,
+      nivel: nivelDisponibilidad(v.unidades),
+    }))
+    .filter((m) => m.nivel !== "DISPONIBLE")
+    .sort((a, b) => a.unidades - b.unidades)
+    .slice(0, MAX_INVENTARIO_CRITICO);
+
   return {
     entidades,
     emitidosHoy: hoy.length,
@@ -69,6 +112,9 @@ export function calcularResumen(entidades: EntidadMedica[], servicios: Servicio[
     nivelServicio: hoy.length ? Math.round((atendidosHoy / hoy.length) * 1000) / 10 : null,
     demandaPorHora,
     porServicio,
+    ventanillasActivas: ventanillas.filter((v) => v.estadoOperativo === "ACTIVA").length,
+    ventanillasTotal: ventanillas.length,
+    inventarioCritico,
   };
 }
 
@@ -82,14 +128,18 @@ export function useResumenOperativo() {
   useEffect(() => {
     let vigente = true;
     async function cargar() {
-      const [entidades, servicios] = await Promise.all([
+      const [entidades, servicios, puntos, medicamentos] = await Promise.all([
         casosDeUso.listarEntidades.ejecutar(),
         casosDeUso.listarServicios.ejecutar(),
+        casosDeUso.listarPuntos.ejecutar(),
+        casosDeUso.listarMedicamentos.ejecutar(),
       ]);
-      const turnos = await Promise.all(
-        servicios.map((s) => casosDeUso.consultarFila.ejecutar(s.id).then((r) => r.turnos)),
-      );
-      return calcularResumen(entidades, servicios, turnos);
+      const [turnos, ventanillasPorPunto, existenciasPorPunto] = await Promise.all([
+        Promise.all(servicios.map((s) => casosDeUso.consultarFila.ejecutar(s.id).then((r) => r.turnos))),
+        Promise.all(puntos.map((p) => casosDeUso.listarVentanillas.ejecutar(p.id))),
+        Promise.all(puntos.map((p) => casosDeUso.consultarExistencias.ejecutar(p.id))),
+      ]);
+      return calcularResumen(entidades, servicios, turnos, Date.now(), ventanillasPorPunto.flat(), medicamentos, existenciasPorPunto);
     }
     const tick = () =>
       cargar()
