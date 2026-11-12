@@ -31,7 +31,7 @@ export function Pagina({ barra, children }: { barra: BarraSuperiorProps; childre
     <AntetituloContext.Provider value={barra.antetitulo}>
       <CabeceraMovil />
       <BarraSuperior {...barra} />
-      <main id="contenido" tabIndex={-1} className="w-full px-[18px] pb-6 pt-[22px] outline-none sm:px-6 lg:p-8">
+      <main id="contenido" tabIndex={-1} className="animar-entrada w-full px-[18px] pb-6 pt-[22px] outline-none sm:px-6 lg:p-8">
         {children}
       </main>
     </AntetituloContext.Provider>
@@ -61,13 +61,15 @@ function BotonNotificaciones({ oscuro = false }: { oscuro?: boolean }) {
     >
       <Bell className="size-[18px]" strokeWidth={1.75} />
       {cantidad > 0 && (
-        <span
-          aria-hidden="true"
-          className={cn(
-            "absolute right-2.5 top-2.5 size-2 rounded-full ring-2",
-            oscuro ? "bg-esmeralda ring-cerceta-oscuro" : "bg-rojo ring-neutro-2",
-          )}
-        />
+        <span className="absolute right-2.5 top-2.5 flex size-2" aria-hidden="true">
+          <span className={cn("absolute inline-flex size-full animate-ping rounded-full opacity-75", oscuro ? "bg-esmeralda" : "bg-rojo")} />
+          <span
+            className={cn(
+              "relative inline-flex size-2 rounded-full ring-2",
+              oscuro ? "bg-esmeralda ring-cerceta-oscuro" : "bg-rojo ring-neutro-2",
+            )}
+          />
+        </span>
       )}
     </Link>
   );
@@ -165,7 +167,7 @@ function MenuUsuario({ nombre, email }: { nombre: string; email: string }) {
         <ChevronDown className={cn("size-[15px] text-tinta-tenue transition-transform", abierto && "rotate-180")} aria-hidden="true" />
       </button>
       {abierto && (
-        <div role="menu" className="absolute right-0 top-full z-40 mt-2 w-64 rounded-xl border border-borde bg-superficie p-2 shadow-lg">
+        <div role="menu" className="animar-menu absolute right-0 top-full z-40 mt-2 w-64 rounded-xl border border-borde bg-superficie p-2 shadow-lg">
           <div className="border-b border-borde px-3 pb-2 pt-1">
             <p className="truncate text-sm font-bold">{nombre}</p>
             <p className="truncate text-xs text-tinta-tenue">{email}</p>

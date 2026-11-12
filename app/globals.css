@@ -118,3 +118,43 @@ body {
 .intro-salida {
   animation: intro-salida 0.7s ease-in forwards;
 }
+
+/* Micro-animaciones reutilizables del resto de la interfaz */
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes velo-aparecer {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes hoja-subir {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes menu-aparecer {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Entrada del contenido al navegar entre páginas. */
+.animar-entrada {
+  animation: aparecer 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+/* Avisos y alertas: suben de forma sutil al aparecer. */
+.animar-aviso {
+  animation: aparecer 0.25s ease-out both;
+}
+/* Fondo oscuro de hojas/diálogos modales. */
+.animar-velo {
+  animation: velo-aparecer 0.2s ease-out both;
+}
+/* Hoja inferior (móvil). */
+.animar-hoja {
+  animation: hoja-subir 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+/* Menús desplegables (usuario, acciones de fila). */
+.animar-menu {
+  animation: menu-aparecer 0.15s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  transform-origin: top right;
+}

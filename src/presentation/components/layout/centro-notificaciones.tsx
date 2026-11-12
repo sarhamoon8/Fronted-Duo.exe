@@ -71,7 +71,7 @@ export function CentroNotificaciones() {
             aria-selected={filtro === valor}
             onClick={() => setFiltro(valor)}
             className={cn(
-              "min-h-10 rounded-lg px-4 text-sm font-bold",
+              "min-h-10 rounded-lg px-4 text-sm font-bold transition-colors",
               filtro === valor ? "bg-cerceta text-white" : "text-tinta-tenue hover:bg-neutro",
             )}
           >
@@ -105,7 +105,7 @@ export function CentroNotificaciones() {
             {visibles.map((n) => {
               const Icono = ICONO[n.tipo] ?? Bell;
               return (
-                <li key={n.id} className={cn("flex gap-3 p-4 sm:p-5", !n.leida && "bg-aqua-suave")}>
+                <li key={n.id} className={cn("flex gap-3 p-4 transition-colors sm:p-5", n.leida ? "hover:bg-neutro-2" : "bg-aqua-suave")}>
                   <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-neutro text-cerceta-profundo">
                     <Icono className="size-5" />
                   </span>
