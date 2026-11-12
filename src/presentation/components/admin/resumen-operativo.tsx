@@ -128,7 +128,7 @@ export function ResumenOperativo() {
                     {datos.porServicio.map((s) => {
                       const alta = s.enFila >= 10 || (s.esperaMin ?? 0) >= 25;
                       return (
-                        <tr key={s.nombre}>
+                        <tr key={s.nombre} className="transition-colors hover:bg-neutro-2">
                           <td className="px-4 py-3.5">{s.nombre}</td>
                           <td className="px-4 py-3.5 text-tinta-tenue">{s.sedes} {s.sedes === 1 ? "sede" : "sedes"}</td>
                           <td className="px-4 py-3.5 font-semibold">{s.enFila}</td>
@@ -185,7 +185,7 @@ export function ListaInventario({ items }: { items: ItemInventarioCritico[] }) {
   return (
     <ul className="divide-y divide-borde">
       {items.map((m) => (
-        <li key={m.medicamentoId} className="flex items-center gap-4 py-3">
+        <li key={m.medicamentoId} className="flex items-center gap-4 rounded-lg py-3 transition-colors hover:bg-neutro-2">
           <div className="flex-1">
             <p className="text-sm font-medium">{m.nombre}</p>
             <p className="text-xs text-tinta-tenue">{m.sedesConStock} {m.sedesConStock === 1 ? "sede" : "sedes"} con existencias</p>

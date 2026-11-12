@@ -127,7 +127,7 @@ export function BarraProgreso({
       aria-valuemax={100}
       className={cn("w-full overflow-hidden rounded-full", alto, claro ? "bg-white/20" : "bg-borde")}
     >
-      <div className={cn("h-full rounded-full", claro ? "bg-esmeralda" : "bg-cerceta")} style={{ width: `${v}%` }} />
+      <div className={cn("h-full rounded-full transition-[width] duration-700 ease-out", claro ? "bg-esmeralda" : "bg-cerceta")} style={{ width: `${v}%` }} />
     </div>
   );
 }

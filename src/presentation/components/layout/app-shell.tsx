@@ -104,8 +104,8 @@ function NavegacionInferior({ sesion, pathname }: { sesion: Sesion; pathname: st
 
   const clase = (activo: boolean) =>
     cn(
-      "flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-[10px]",
-      activo ? "bg-aqua font-bold text-cerceta-oscuro" : "text-tinta-tenue",
+      "flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-[10px] transition-colors active:scale-[0.97]",
+      activo ? "bg-aqua font-bold text-cerceta-oscuro" : "text-tinta-tenue hover:bg-neutro",
     );
 
   return (
@@ -160,8 +160,8 @@ function HojaPerfil({ sesion }: { sesion: Sesion }) {
 
   return (
     <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-labelledby="t-perfil">
-      <button type="button" aria-label="Cerrar" className="absolute inset-0 bg-titulo/40" onClick={cerrarPerfil} />
-      <div className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-superficie p-5 pb-8 shadow-tarjeta">
+      <button type="button" aria-label="Cerrar" className="animar-velo absolute inset-0 bg-titulo/40" onClick={cerrarPerfil} />
+      <div className="animar-hoja absolute inset-x-0 bottom-0 rounded-t-2xl bg-superficie p-5 pb-8 shadow-tarjeta">
         <div className="mb-4 flex items-start justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase text-cerceta">{PERFIL_ETIQUETA[sesion.rol]}</p>

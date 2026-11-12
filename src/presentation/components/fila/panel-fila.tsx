@@ -264,7 +264,7 @@ function ColaActual({
               {pendientes.map((t, i) => {
                 const espera = minutosDesde(t.creadoEn, ahora);
                 return (
-                  <tr key={t.id} className={i === 0 ? "bg-menta-suave" : undefined}>
+                  <tr key={t.id} className={cn("transition-colors hover:bg-neutro-2", i === 0 && "bg-menta-suave hover:bg-menta-suave")}>
                     <td className="px-4 py-3">
                       <span className="flex items-center gap-2 font-mono font-semibold text-cerceta-oscuro">
                         <span className={cn("size-1.5 rounded-full", i === 0 ? "bg-esmeralda" : "bg-borde-fuerte")} aria-hidden="true" />
@@ -334,7 +334,7 @@ function MenuAcciones({
         <MoreVertical className="size-4" />
       </button>
       {abierto && (
-        <div role="menu" className="absolute right-0 top-full z-20 mt-1 w-44 rounded-xl border border-borde bg-superficie p-1.5 text-left shadow-lg">
+        <div role="menu" className="animar-menu absolute right-0 top-full z-20 mt-1 w-44 rounded-xl border border-borde bg-superficie p-1.5 text-left shadow-lg">
           {acciones.map((a) => (
             <button
               key={a.texto}
