@@ -1,0 +1,54 @@
+config:
+  target: "http://localhost:3001"
+  phases:
+    - duration: 10
+      arrivalRate: 2
+      rampTo: 20
+      name: "Rampa: de carga baja a alta"
+    - duration: 30
+      arrivalRate: 20
+      name: "Carga sostenida"
+  ensure:
+    maxErrorRate: 1
+    p95: 2000
+
+# Igual que stress/turnos-concurrencia.yml del backend, pero golpeando el
+# BFF (lo que de verdad usa la interfaz), no el backend directo: cada
+# "usuario virtual" pasa por /api/auth/register (cookie httpOnly real) y
+# luego /api/bff/turnos (el proxy autenticado). Mide la latencia agregada
+# BFF+backend bajo carga concurrente, que es lo que un usuario real siente.
+# Artillery maneja las cookies automáticamente entre pasos del mismo VU
+# (como un navegador), así que no hace falta capturarlas a mano.
+#
+# El prefijo "STRESS-FE-" en numeroDocumento es intencional: lo recoge el
+# mismo `npm run stress:limpiar` del backend (filtra por
+# numeroDocumento que empiece con "STRESS"), sin duplicar el script aquí.
+scenarios:
+  - name: "Registrarse vía BFF y solicitar un turno"
+    flow:
+      - get:
+          url: "/api/bff/servicios"
+          capture:
+            - json: "$[0].id"
+              as: "servicioId"
+            - json: "$[0].entidadId"
+              as: "entidadId"
+      - get:
+          url: "/api/bff/puntos-dispensacion?entidadId={{ entidadId }}"
+          capture:
+            - json: "$[0].id"
+              as: "puntoId"
+      - post:
+          url: "/api/auth/register"
+          json:
+            numeroDocumento: "STRESS-FE-{{ $uuid }}"
+            tipoDocumento: "CC"
+            nombres: "Carga"
+            apellidos: "Frontend"
+            email: "stress.fe.{{ $uuid }}@example.com"
+            password: "clave123456"
+      - post:
+          url: "/api/bff/turnos"
+          json:
+            servicioId: "{{ servicioId }}"
+            puntoId: "{{ puntoId }}"

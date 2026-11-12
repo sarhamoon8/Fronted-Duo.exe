@@ -23,8 +23,8 @@ const TAMANOS = {
 
 export function claseBoton(variante: Variante = "primario", tamano: keyof typeof TAMANOS = "md", extra?: string) {
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-colors",
-    "disabled:cursor-not-allowed disabled:opacity-55",
+    "inline-flex items-center justify-center gap-2 rounded-xl font-bold transition duration-150 active:scale-[0.97]",
+    "disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100",
     TAMANOS[tamano],
     VARIANTES[variante],
     extra,

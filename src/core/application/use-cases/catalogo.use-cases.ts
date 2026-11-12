@@ -1,4 +1,4 @@
-import type { CatalogoRepository, UsuarioRepository } from "../../domain/ports";
+import type { CatalogoRepository, NuevoPunto, UsuarioRepository } from "../../domain/ports";
 import type { NuevoUsuario } from "../../domain/entities/usuario";
 import { validarRegistro } from "./auth.use-cases";
 import { AppError } from "../../domain/errors";
@@ -68,5 +68,21 @@ export class CrearUsuarioUseCase {
       email: datos.email.trim().toLowerCase(),
       telefono: datos.telefono?.trim() || undefined,
     });
+  }
+}
+
+export class CrearPuntoUseCase {
+  constructor(private readonly repo: CatalogoRepository) {}
+  ejecutar(datos: NuevoPunto) {
+    const errores: string[] = [];
+    if (!datos.entidadId) errores.push("Elige la entidad médica.");
+    if (!datos.nombreSede.trim()) errores.push("El nombre de la sede es obligatorio.");
+    if (!datos.direccion.trim()) errores.push("La dirección es obligatoria.");
+    if (!datos.ciudad.trim()) errores.push("La ciudad es obligatoria.");
+    if (!Number.isInteger(datos.capacidadAtencion) || datos.capacidadAtencion < 1) {
+      errores.push("La capacidad de atención debe ser un entero mayor o igual a 1.");
+    }
+    if (errores.length) throw new AppError(errores, 400);
+    return this.repo.crearPunto(datos);
   }
 }

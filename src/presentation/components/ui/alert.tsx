@@ -33,7 +33,7 @@ export function Alert({
 }) {
   const t = TONOS[tono];
   return (
-    <div role={tono === "error" ? "alert" : "status"} className={cn("flex gap-3 rounded-xl border p-4", t.caja, className)}>
+    <div role={tono === "error" ? "alert" : "status"} className={cn("animar-aviso flex gap-3 rounded-xl border p-4", t.caja, className)}>
       <span aria-hidden="true" className={cn("mt-0.5 shrink-0", t.icono)}>
         {icono ?? ICONOS[tono]}
       </span>

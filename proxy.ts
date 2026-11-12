@@ -18,6 +18,8 @@ const RUTAS_POR_ROL: { prefijo: string; roles: Rol[] }[] = [
   { prefijo: "/historial", roles: TODOS },
   { prefijo: "/farmacia", roles: TODOS },
   { prefijo: "/inicio", roles: TODOS },
+  { prefijo: "/lista-espera", roles: TODOS },
+  { prefijo: "/notificaciones", roles: TODOS },
 ];
 
 /** Página de inicio de cada rol (igual que INICIO_POR_ROL en la navegación). */

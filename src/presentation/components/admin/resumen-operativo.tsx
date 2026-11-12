@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { CalendarDays, CircleCheck, Clock3, Download, Settings, Target, Ticket, TrendingUp } from "lucide-react";
-import { META_ESPERA_MIN, useResumenOperativo } from "@/presentation/hooks/use-resumen-operativo";
+import type { NivelDisponibilidad } from "@/core/domain/entities/medicamento";
+import { type ItemInventarioCritico, META_ESPERA_MIN, useResumenOperativo } from "@/presentation/hooks/use-resumen-operativo";
 import { cn, fechaLarga, formatearHora } from "@/presentation/lib/cn";
-import { ESTADO_RED, INVENTARIO_CRITICO } from "@/presentation/mocks/demo";
 import { Alert } from "@/presentation/components/ui/alert";
 import { Button, claseBoton } from "@/presentation/components/ui/button";
-import { Card, CardTitulo, EncabezadoPagina, Indicador, MarcaDemo, Pildora } from "@/presentation/components/ui/card";
+import { Card, CardTitulo, EncabezadoPagina, Indicador, Pildora } from "@/presentation/components/ui/card";
 import { EstadoVacio } from "@/presentation/components/ui/empty-state";
 import { Spinner } from "@/presentation/components/ui/spinner";
 import { GraficoDemanda } from "./grafico-demanda";
@@ -128,7 +128,7 @@ export function ResumenOperativo() {
                     {datos.porServicio.map((s) => {
                       const alta = s.enFila >= 10 || (s.esperaMin ?? 0) >= 25;
                       return (
-                        <tr key={s.nombre}>
+                        <tr key={s.nombre} className="transition-colors hover:bg-neutro-2">
                           <td className="px-4 py-3.5">{s.nombre}</td>
                           <td className="px-4 py-3.5 text-tinta-tenue">{s.sedes} {s.sedes === 1 ? "sede" : "sedes"}</td>
                           <td className="px-4 py-3.5 font-semibold">{s.enFila}</td>
@@ -148,28 +148,21 @@ export function ResumenOperativo() {
             <Card aria-labelledby="t-inv">
               <CardTitulo
                 id="t-inv"
-                descripcion="Medicamentos con cobertura menor a 20 días."
-                acciones={
-                  <div className="flex items-center gap-2">
-                    <MarcaDemo />
-                    <Link href="/admin/inventario" className={claseBoton("secundario")}>Ver inventario</Link>
-                  </div>
-                }
+                descripcion="Medicamentos con baja o nula disponibilidad en todas las sedes."
+                acciones={<Link href="/admin/inventario" className={claseBoton("secundario")}>Ver inventario</Link>}
               >
                 Inventario crítico
               </CardTitulo>
-              <ListaInventario />
+              <ListaInventario items={datos.inventarioCritico} />
             </Card>
 
             <Card aria-labelledby="t-red">
-              <CardTitulo id="t-red" descripcion={`${datos.entidades.length} sedes monitoreadas.`} acciones={<MarcaDemo />}>
+              <CardTitulo id="t-red" descripcion={`${datos.entidades.length} sedes monitoreadas.`}>
                 Estado de la red
               </CardTitulo>
               <dl className="flex flex-col gap-3 text-sm">
                 <FilaRed titulo="Sedes operativas" valor={`${datos.entidades.length} / ${datos.entidades.length}`} tono="menta" />
-                <FilaRed titulo="Ventanillas activas" valor={ESTADO_RED.ventanillas} tono="menta" />
-                <FilaRed titulo="Alertas abiertas" valor={String(ESTADO_RED.alertas)} tono="ambar" />
-                <FilaRed titulo="Incidentes críticos" valor={String(ESTADO_RED.incidentes)} tono="menta" />
+                <FilaRed titulo="Ventanillas activas" valor={`${datos.ventanillasActivas} / ${datos.ventanillasTotal}`} tono="menta" />
               </dl>
             </Card>
           </div>
@@ -179,23 +172,26 @@ export function ResumenOperativo() {
   );
 }
 
-const ESTADO_INV = {
-  DISPONIBLE: { texto: "Disponible", tono: "menta" as const },
-  STOCK_BAJO: { texto: "Stock bajo", tono: "ambar" as const },
-  AGOTADO: { texto: "Agotado", tono: "rojo" as const },
+const ESTADO_INV: Record<NivelDisponibilidad, { texto: string; tono: "menta" | "ambar" | "rojo" }> = {
+  DISPONIBLE: { texto: "Disponible", tono: "menta" },
+  BAJA: { texto: "Baja disponibilidad", tono: "ambar" },
+  AGOTADO: { texto: "Agotado", tono: "rojo" },
 };
 
-export function ListaInventario() {
+export function ListaInventario({ items }: { items: ItemInventarioCritico[] }) {
+  if (items.length === 0) {
+    return <p className="text-sm text-tinta-tenue">Todos los medicamentos tienen existencias suficientes.</p>;
+  }
   return (
     <ul className="divide-y divide-borde">
-      {INVENTARIO_CRITICO.map((m) => (
-        <li key={m.nombre} className="flex items-center gap-4 py-3">
+      {items.map((m) => (
+        <li key={m.medicamentoId} className="flex items-center gap-4 rounded-lg py-3 transition-colors hover:bg-neutro-2">
           <div className="flex-1">
             <p className="text-sm font-medium">{m.nombre}</p>
-            <p className="text-xs text-tinta-tenue">{m.cobertura}</p>
+            <p className="text-xs text-tinta-tenue">{m.sedesConStock} {m.sedesConStock === 1 ? "sede" : "sedes"} con existencias</p>
           </div>
           <span className="w-20 text-right text-sm text-tinta-suave">{m.unidades.toLocaleString("es-CO")} und.</span>
-          <span className="w-24 text-right"><Pildora tono={ESTADO_INV[m.estado].tono}>{ESTADO_INV[m.estado].texto}</Pildora></span>
+          <span className="w-24 text-right"><Pildora tono={ESTADO_INV[m.nivel].tono}>{ESTADO_INV[m.nivel].texto}</Pildora></span>
         </li>
       ))}
     </ul>

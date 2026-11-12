@@ -1,4 +1,4 @@
-import type { CatalogoRepository } from "@/core/domain/ports";
+import type { CatalogoRepository, NuevoPunto } from "@/core/domain/ports";
 import type { EntidadMedica, PuntoDispensacion, Servicio } from "@/core/domain/entities/catalogo";
 import { internalApi } from "../http/internal-client";
 import type { EntidadMedicaDto, PuntoDispensacionDto, ServicioDto } from "../mappers";
@@ -41,6 +41,11 @@ export class HttpCatalogoRepository implements CatalogoRepository {
     const { data } = await internalApi.get<PuntoDispensacionDto[]>("/bff/puntos-dispensacion", {
       params: entidadId ? { entidadId } : undefined,
     });
+    return data;
+  }
+
+  async crearPunto(datos: NuevoPunto): Promise<PuntoDispensacion> {
+    const { data } = await internalApi.post<PuntoDispensacionDto>("/bff/puntos-dispensacion", datos);
     return data;
   }
 }

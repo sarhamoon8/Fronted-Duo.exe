@@ -1,8 +1,10 @@
 import {
   BarChart3,
+  Building2,
   CheckCircle2,
   ClockFading,
   History,
+  Hourglass,
   House,
   LayoutGrid,
   ListOrdered,
@@ -10,6 +12,7 @@ import {
   Pill,
   Stethoscope,
   Ticket,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import type { Rol } from "@/core/domain/entities/rol";
@@ -31,6 +34,7 @@ export const NAVEGACION: Record<Rol, ItemNavegacion[]> = {
     { href: "/inicio", etiqueta: "Inicio", icono: House },
     { href: "/turnos", etiqueta: "Mis turnos", corta: "Turnos", icono: Ticket },
     { href: "/medicamentos", etiqueta: "Medicamentos", corta: "Medicinas", icono: Pill },
+    { href: "/lista-espera", etiqueta: "Lista de espera", corta: "Espera", icono: Hourglass },
     { href: "/historial", etiqueta: "Historial", icono: ClockFading, soloEscritorio: true },
   ],
   FUNCIONARIO: [
@@ -42,6 +46,8 @@ export const NAVEGACION: Record<Rol, ItemNavegacion[]> = {
     { href: "/admin", etiqueta: "Resumen", icono: LayoutGrid, exacto: true },
     { href: "/admin/servicios", etiqueta: "Servicios", icono: Stethoscope },
     { href: "/admin/inventario", etiqueta: "Inventario", icono: Package },
+    { href: "/admin/sedes", etiqueta: "Sedes y ventanillas", corta: "Sedes", icono: Building2, soloEscritorio: true },
+    { href: "/admin/personal", etiqueta: "Personal", icono: Users, soloEscritorio: true },
     { href: "/admin/reportes", etiqueta: "Reportes", icono: BarChart3 },
     // El backend ya autoriza a ADMIN igual que a FUNCIONARIO en /turnos
     // (@Roles(FUNCIONARIO, ADMIN)); faltaba el enlace en el menú.
