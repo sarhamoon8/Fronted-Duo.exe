@@ -20,7 +20,8 @@ export function MisCitas() {
   const [cancelandoId, setCancelandoId] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<{ tono: "exito" | "error"; texto: string } | null>(null);
 
-  const citas = useRecurso("mis-citas", () => casosDeUso.misCitas.ejecutar(), { intervaloMs: 60_000 });
+  // El instante de referencia se toma al cargar (no durante el render) para separar próximas de pasadas.
+  const citas = useRecurso("mis-citas", async () => ({ lista: await casosDeUso.misCitas.ejecutar(), ahora: Date.now() }), { intervaloMs: 60_000 });
   const puntos = useRecurso("puntos-todos", () => casosDeUso.listarPuntos.ejecutar());
   const nombrePunto = useMemo(
     () => new Map((puntos.datos ?? []).map((p) => [p.id, `${p.nombreSede} · ${p.ciudad}`])),
@@ -28,8 +29,8 @@ export function MisCitas() {
   );
 
   const { proximas, anteriores } = useMemo(() => {
-    const ahora = Date.now();
-    const todas = citas.datos ?? [];
+    const ahora = citas.datos?.ahora ?? 0;
+    const todas = citas.datos?.lista ?? [];
     return {
       proximas: todas.filter((c) => c.estado === "PROGRAMADA" && c.fechaHora.getTime() > ahora).sort((a, b) => a.fechaHora.getTime() - b.fechaHora.getTime()),
       anteriores: todas.filter((c) => !(c.estado === "PROGRAMADA" && c.fechaHora.getTime() > ahora)).sort((a, b) => b.fechaHora.getTime() - a.fechaHora.getTime()),
