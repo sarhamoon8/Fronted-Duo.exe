@@ -4,16 +4,17 @@ import { AgendarCita } from "@/presentation/components/paciente/agendar-cita";
 
 export const metadata: Metadata = { title: "Pedir una cita" };
 
-export default function NuevaCitaPage() {
+export default async function NuevaCitaPage({ searchParams }: { searchParams: Promise<{ reprogramar?: string }> }) {
+  const { reprogramar } = await searchParams;
   return (
     <Pagina
       barra={{
         antetitulo: "Portal del paciente",
-        titulo: "Pedir una cita",
-        descripcion: "Elige sede, especialidad y hora.",
+        titulo: reprogramar ? "Reprogramar cita" : "Pedir una cita",
+        descripcion: reprogramar ? "Elige la nueva hora." : "Elige sede, especialidad y hora.",
       }}
     >
-      <AgendarCita />
+      <AgendarCita reprogramarId={reprogramar} />
     </Pagina>
   );
 }

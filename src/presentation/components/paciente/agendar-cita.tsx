@@ -22,15 +22,21 @@ const DIAS_MAXIMOS = 60;
  * Pedir una cita: sede → especialidad → fecha → hora. El doctor no se elige:
  * el sistema le asigna uno disponible en esa sede y especialidad a esa hora.
  */
-export function AgendarCita() {
+export function AgendarCita({ reprogramarId }: { reprogramarId?: string }) {
   const hoy = hoyColombia();
-  const [puntoId, setPuntoId] = useState("");
-  const [especialidad, setEspecialidad] = useState("");
+  const [puntoElegido, setPuntoId] = useState("");
+  const [especialidadElegida, setEspecialidad] = useState("");
   const [fecha, setFecha] = useState("");
   const [franja, setFranja] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [agendada, setAgendada] = useState<Cita | null>(null);
+
+  // Reprogramar: la cita original fija sede y especialidad; solo cambia la hora.
+  const citas = useRecurso("cita-a-reprogramar", () => casosDeUso.misCitas.ejecutar(), { activo: Boolean(reprogramarId) });
+  const original = reprogramarId ? (citas.datos ?? []).find((c) => c.id === reprogramarId && c.estado === "PROGRAMADA") ?? null : null;
+  const puntoId = original?.puntoId ?? puntoElegido;
+  const especialidad = original?.especialidad ?? especialidadElegida;
 
   const puntos = useRecurso("puntos-todos", () => casosDeUso.listarPuntos.ejecutar());
   const profesionales = useRecurso(`profesionales-${puntoId}`, () => casosDeUso.listarProfesionales.ejecutar({ puntoId }), {
@@ -72,7 +78,11 @@ export function AgendarCita() {
     setError(null);
     setEnviando(true);
     try {
-      setAgendada(await casosDeUso.agendarCita.ejecutar({ puntoId, especialidad, fechaHora: franja }));
+      setAgendada(
+        original
+          ? await casosDeUso.reprogramarCita.ejecutar(original.id, franja)
+          : await casosDeUso.agendarCita.ejecutar({ puntoId, especialidad, fechaHora: franja }),
+      );
     } catch (e) {
       setError(mensajeDeError(e));
       setFranja("");
@@ -94,7 +104,10 @@ export function AgendarCita() {
   if (agendada) {
     return (
       <>
-        <EncabezadoPagina titulo="¡Cita confirmada!" descripcion="Te asignamos un doctor para esa hora." />
+        <EncabezadoPagina
+          titulo={original ? "¡Cita reprogramada!" : "¡Cita confirmada!"}
+          descripcion={original ? "Tu cita quedó en la nueva hora." : "Te asignamos un doctor para esa hora."}
+        />
         <Card aria-labelledby="t-confirmada">
           <CardTitulo id="t-confirmada" descripcion="Guarda estos datos o consúltalos en «Mis citas».">
             Tu cita
@@ -129,9 +142,11 @@ export function AgendarCita() {
           </dl>
           <div className="mt-5 flex flex-wrap gap-3">
             <BotonEnlace href="/citas">Ver mis citas</BotonEnlace>
-            <Button variante="secundario" onClick={otraCita}>
-              Pedir otra cita
-            </Button>
+            {!original && (
+              <Button variante="secundario" onClick={otraCita}>
+                Pedir otra cita
+              </Button>
+            )}
           </div>
         </Card>
       </>
@@ -140,7 +155,33 @@ export function AgendarCita() {
 
   return (
     <>
-      <EncabezadoPagina titulo="Pedir una cita" descripcion="Elige la sede, la especialidad y el día. Nosotros te asignamos el doctor." />
+      <EncabezadoPagina
+        titulo={reprogramarId ? "Reprogramar cita" : "Pedir una cita"}
+        descripcion={
+          reprogramarId
+            ? "Elige el nuevo día y la nueva hora. Si tu doctor está libre, seguirá siendo el mismo."
+            : "Elige la sede, la especialidad y el día. Nosotros te asignamos el doctor."
+        }
+      />
+
+      {reprogramarId && citas.cargando && (
+        <div className="flex justify-center py-10">
+          <Spinner className="size-6" />
+        </div>
+      )}
+      {reprogramarId && !citas.cargando && !original && (
+        <div className="mb-4">
+          <Alert tono="error">No encontramos esa cita o ya no se puede reprogramar.</Alert>
+        </div>
+      )}
+      {original && (
+        <div className="mb-4">
+          <Alert tono="info" titulo="Cita actual">
+            {original.especialidad} · {fechaLarga(original.fechaHora)}, {horaCorta(original.fechaHora)}
+            {original.profesional ? ` · Dr(a). ${original.profesional.nombres} ${original.profesional.apellidos}` : ""}
+          </Alert>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4">
@@ -154,7 +195,7 @@ export function AgendarCita() {
             Datos de la cita
           </CardTitulo>
           <div className="grid gap-4">
-            <Select etiqueta="Sede" value={puntoId} onChange={(e) => cambiarSede(e.target.value)}>
+            <Select etiqueta="Sede" value={puntoId} disabled={Boolean(original)} onChange={(e) => cambiarSede(e.target.value)}>
               <option value="">{puntos.cargando ? "Cargando…" : "Selecciona una sede"}</option>
               {(puntos.datos ?? []).map((p) => (
                 <option key={p.id} value={p.id}>
@@ -165,7 +206,7 @@ export function AgendarCita() {
             <Select
               etiqueta="Especialidad"
               value={especialidad}
-              disabled={!puntoId || profesionales.cargando}
+              disabled={Boolean(original) || !puntoId || profesionales.cargando}
               onChange={(e) => cambiarEspecialidad(e.target.value)}
               ayuda={puntoId && !profesionales.cargando && especialidades.length === 0 ? "Esta sede aún no tiene doctores registrados." : undefined}
             >
@@ -240,10 +281,10 @@ export function AgendarCita() {
               </ul>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-borde pt-4">
                 <p className="text-sm text-tinta-tenue">
-                  {franja ? "Listo para confirmar. Te asignaremos un doctor disponible." : "Selecciona una hora para continuar."}
+                  {franja ? (original ? "Listo para reprogramar." : "Listo para confirmar. Te asignaremos un doctor disponible.") : "Selecciona una hora para continuar."}
                 </p>
                 <Button cargando={enviando} disabled={!franja} onClick={() => void confirmar()} icono={<CalendarCheck className="size-4" aria-hidden="true" />}>
-                  Confirmar cita
+                  {original ? "Reprogramar cita" : "Confirmar cita"}
                 </Button>
               </div>
             </>
