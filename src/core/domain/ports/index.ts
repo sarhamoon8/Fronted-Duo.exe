@@ -3,6 +3,7 @@
  * abstracciones; la infraestructura (Axios) las implementa.
  */
 import type { EntidadMedica, PuntoDispensacion, Servicio, Ventanilla } from "../entities/catalogo";
+import type { Cita, DisponibilidadCitas, NuevaCita, Profesional } from "../entities/cita";
 import type { InscripcionEspera } from "../entities/lista-espera";
 import type { ExistenciaMedicamento, Medicamento } from "../entities/medicamento";
 import type { Notificacion } from "../entities/notificacion";
@@ -65,6 +66,17 @@ export interface ListaEsperaRepository {
   unirse(servicioId: string, puntoId: string): Promise<InscripcionEspera>;
   misInscripciones(): Promise<InscripcionEspera[]>;
   salir(inscripcionId: string): Promise<void>;
+}
+
+export interface CitaRepository {
+  disponibilidad(puntoId: string, especialidad: string, fecha: string): Promise<DisponibilidadCitas>;
+  agendar(datos: NuevaCita): Promise<Cita>;
+  misCitas(): Promise<Cita[]>;
+  cancelar(citaId: string): Promise<Cita>;
+}
+
+export interface ProfesionalRepository {
+  listar(filtro?: { puntoId?: string; especialidad?: string }): Promise<Profesional[]>;
 }
 
 export interface NotificacionRepository {
