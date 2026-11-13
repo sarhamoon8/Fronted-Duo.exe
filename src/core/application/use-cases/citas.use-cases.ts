@@ -41,6 +41,16 @@ export class CancelarCitaUseCase {
   }
 }
 
+export class ReprogramarCitaUseCase {
+  constructor(private readonly repo: CitaRepository) {}
+  ejecutar(citaId: string, fechaHora: string) {
+    if (!citaId || !fechaHora) {
+      throw new AppError(["Elige la nueva hora para tu cita."], 400);
+    }
+    return this.repo.reprogramar(citaId, fechaHora);
+  }
+}
+
 export class ListarProfesionalesUseCase {
   constructor(private readonly repo: ProfesionalRepository) {}
   ejecutar(filtro?: { puntoId?: string; especialidad?: string }) {

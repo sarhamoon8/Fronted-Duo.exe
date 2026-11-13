@@ -7,9 +7,16 @@ import {
   ConsultarDisponibilidadCitasUseCase,
   ListarProfesionalesUseCase,
   MisCitasUseCase,
+  ReprogramarCitaUseCase,
 } from "./citas.use-cases";
 
-const repo = (): CitaRepository => ({ disponibilidad: vi.fn(), agendar: vi.fn(), misCitas: vi.fn(), cancelar: vi.fn() });
+const repo = (): CitaRepository => ({
+  disponibilidad: vi.fn(),
+  agendar: vi.fn(),
+  misCitas: vi.fn(),
+  cancelar: vi.fn(),
+  reprogramar: vi.fn(),
+});
 
 describe("casos de uso de citas", () => {
   it("consultar disponibilidad valida sede, especialidad y fecha", () => {
@@ -33,6 +40,17 @@ describe("casos de uso de citas", () => {
     const datos = { puntoId: "p1", especialidad: "Pediatría", fechaHora: "2026-11-17T14:00:00.000Z" };
     caso.ejecutar(datos);
     expect(r.agendar).toHaveBeenCalledWith(datos);
+  });
+
+  it("reprogramar exige la cita y la nueva hora, y delega en el repositorio", () => {
+    const r = repo();
+    const caso = new ReprogramarCitaUseCase(r);
+    expect(() => caso.ejecutar("", "2026-11-17T14:00:00.000Z")).toThrow(AppError);
+    expect(() => caso.ejecutar("c1", "")).toThrow(AppError);
+    expect(r.reprogramar).not.toHaveBeenCalled();
+
+    caso.ejecutar("c1", "2026-11-17T14:00:00.000Z");
+    expect(r.reprogramar).toHaveBeenCalledWith("c1", "2026-11-17T14:00:00.000Z");
   });
 
   it("mis citas, cancelar y listar profesionales delegan", () => {

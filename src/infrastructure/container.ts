@@ -50,6 +50,7 @@ import {
   ConsultarDisponibilidadCitasUseCase,
   ListarProfesionalesUseCase,
   MisCitasUseCase,
+  ReprogramarCitaUseCase,
 } from "@/core/application/use-cases/citas.use-cases";
 import { HttpCitaRepository } from "./repositories/cita.repository";
 import { HttpProfesionalRepository } from "./repositories/profesional.repository";
@@ -111,6 +112,7 @@ export const casosDeUso = {
   agendarCita: new AgendarCitaUseCase(citaRepo),
   misCitas: new MisCitasUseCase(citaRepo),
   cancelarCita: new CancelarCitaUseCase(citaRepo),
+  reprogramarCita: new ReprogramarCitaUseCase(citaRepo),
   listarProfesionales: new ListarProfesionalesUseCase(profesionalRepo),
 
 } as const;
