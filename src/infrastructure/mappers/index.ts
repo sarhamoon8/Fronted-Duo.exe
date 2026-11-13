@@ -35,6 +35,9 @@ export interface TurnoDto {
   estado: string;
   prioridad: boolean;
   posicion: number | null;
+  minutosEstimadosLlamado?: number | null;
+  horaEstimadaLlamado?: string | null;
+  llamableDesde?: string | null;
   horaLlamado: string | null;
   horaFinalizacion: string | null;
   creadoEn: string;
@@ -58,6 +61,9 @@ export const TurnoMapper = {
     return {
       ...dto,
       estado: dto.estado as EstadoTurno,
+      minutosEstimadosLlamado: dto.minutosEstimadosLlamado ?? null,
+      horaEstimadaLlamado: dto.horaEstimadaLlamado ? new Date(dto.horaEstimadaLlamado) : null,
+      llamableDesde: dto.llamableDesde ? new Date(dto.llamableDesde) : null,
       horaLlamado: dto.horaLlamado ? new Date(dto.horaLlamado) : null,
       horaFinalizacion: dto.horaFinalizacion ? new Date(dto.horaFinalizacion) : null,
       creadoEn: new Date(dto.creadoEn),
