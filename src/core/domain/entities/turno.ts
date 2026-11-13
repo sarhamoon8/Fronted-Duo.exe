@@ -14,6 +14,12 @@ export interface Turno {
   prioridad: boolean;
   /** Solo los turnos PENDIENTE tienen posición; el resto llega en null. */
   posicion: number | null;
+  /** Solo PENDIENTE: minutos que faltan para que lo llamen (estimado por el backend). */
+  minutosEstimadosLlamado: number | null;
+  /** Solo PENDIENTE: hora estimada de llamado; nunca es anterior a `llamableDesde`. */
+  horaEstimadaLlamado: Date | null;
+  /** Solo PENDIENTE: hasta esa hora no se llama el turno (margen para llegar a la sede). */
+  llamableDesde: Date | null;
   horaLlamado: Date | null;
   horaFinalizacion: Date | null;
   creadoEn: Date;
@@ -46,6 +52,17 @@ export function puedeAvanzar(estado: EstadoTurno): boolean {
   return SIGUIENTE_ESTADO[estado] !== null;
 }
 
+/**
+ * Margen de llegada (replica de MINUTOS_MINIMOS_ANTES_DE_LLAMADO del backend):
+ * un turno no se llama antes de que pasen estos minutos desde que se pidió.
+ */
+export const MINUTOS_MARGEN_LLEGADA = 15;
+
+/** ¿Ya pasó el margen de llegada y el personal puede llamar este turno? */
+export function puedeLlamarse(t: Pick<Turno, "llamableDesde">, ahora: Date): boolean {
+  return !t.llamableDesde || ahora.getTime() >= t.llamableDesde.getTime();
+}
+
 /** Regla de CancelarTurnoUseCase: ATENDIDO y CANCELADO no se cancelan. */
 export function puedeCancelar(estado: EstadoTurno): boolean {
   return estado === "PENDIENTE" || estado === "EN_CURSO";
@@ -74,6 +91,11 @@ export function codigoTurno(t: Pick<Turno, "id" | "codigoAlfanumerico">): string
  * tiempos de atención: minutos promedio que tarda cada turno.
  */
 export const MINUTOS_POR_TURNO = 6;
+
+/** Minutos de espera a mostrar: el estimado del backend o, si falta, uno local aproximado. */
+export function minutosParaLlamado(t: Pick<Turno, "minutosEstimadosLlamado" | "posicion">): number | null {
+  return t.minutosEstimadosLlamado ?? estimarEspera(t.posicion);
+}
 
 /** Espera estimada (min) para quien está en `posicion` (1 = siguiente). */
 export function estimarEspera(posicion: number | null): number | null {
