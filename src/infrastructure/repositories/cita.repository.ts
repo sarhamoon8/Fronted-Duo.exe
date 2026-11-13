@@ -9,6 +9,7 @@ import { CitaMapper, DisponibilidadCitasMapper, type CitaDto, type Disponibilida
  *   POST  /citas                                             (asigna doctor automáticamente)
  *   GET   /citas/mis-citas
  *   PATCH /citas/:id/cancelar
+ *   PATCH /citas/:id/reprogramar   (mismo doctor si está libre, si no otro)
  */
 export class HttpCitaRepository implements CitaRepository {
   async disponibilidad(puntoId: string, especialidad: string, fecha: string): Promise<DisponibilidadCitas> {
@@ -26,6 +27,11 @@ export class HttpCitaRepository implements CitaRepository {
   async misCitas(): Promise<Cita[]> {
     const { data } = await internalApi.get<CitaDto[]>("/bff/citas/mis-citas");
     return data.map(CitaMapper.toDomain);
+  }
+
+  async reprogramar(citaId: string, fechaHora: string): Promise<Cita> {
+    const { data } = await internalApi.patch<CitaDto>(`/bff/citas/${encodeURIComponent(citaId)}/reprogramar`, { fechaHora });
+    return CitaMapper.toDomain(data);
   }
 
   async cancelar(citaId: string): Promise<Cita> {

@@ -73,6 +73,7 @@ export interface CitaRepository {
   agendar(datos: NuevaCita): Promise<Cita>;
   misCitas(): Promise<Cita[]>;
   cancelar(citaId: string): Promise<Cita>;
+  reprogramar(citaId: string, fechaHora: string): Promise<Cita>;
 }
 
 export interface ProfesionalRepository {
