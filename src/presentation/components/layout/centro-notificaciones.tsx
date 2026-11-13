@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, CheckCheck, Ticket, TicketCheck, TicketX, Repeat } from "lucide-react";
+import { Bell, CalendarCheck, CalendarClock, CalendarX, CheckCheck, Ticket, TicketCheck, TicketX, Repeat } from "lucide-react";
 import { TIPO_NOTIFICACION_ETIQUETA, type TipoNotificacion } from "@/core/domain/entities/notificacion";
 import { mensajeDeError } from "@/core/domain/errors";
 import { useNotificaciones } from "@/presentation/hooks/use-notificaciones";
@@ -17,6 +17,9 @@ const ICONO: Record<TipoNotificacion, typeof Bell> = {
   TURNO_CANCELADO: TicketX,
   TURNO_EN_CURSO: TicketCheck,
   TURNO_REASIGNADO: Repeat,
+  CITA_AGENDADA: CalendarCheck,
+  CITA_CANCELADA: CalendarX,
+  CITA_REPROGRAMADA: CalendarClock,
 };
 
 function fechaCorta(fecha: Date) {
