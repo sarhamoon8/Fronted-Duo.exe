@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarDays, CalendarPlus, MapPin, Stethoscope, UserRound, XCircle } from "lucide-react";
+import { CalendarClock, CalendarDays, CalendarPlus, MapPin, Stethoscope, UserRound, XCircle } from "lucide-react";
 import { ESTADO_CITA_ETIQUETA, type Cita } from "@/core/domain/entities/cita";
 import { mensajeDeError } from "@/core/domain/errors";
 import { casosDeUso } from "@/infrastructure/container";
@@ -76,7 +76,10 @@ export function MisCitas() {
           </div>
         </div>
         {conAccion && (
-          <div className="mt-3 flex justify-end">
+          <div className="mt-3 flex flex-wrap justify-end gap-2">
+            <BotonEnlace href={`/citas/nueva?reprogramar=${encodeURIComponent(cita.id)}`} variante="secundario" tamano="sm" icono={<CalendarClock className="size-4" aria-hidden="true" />}>
+              Reprogramar
+            </BotonEnlace>
             <Button variante="secundario" tamano="sm" cargando={cancelandoId === cita.id} onClick={() => void cancelar(cita.id)} icono={<XCircle className="size-4" aria-hidden="true" />}>
               Cancelar cita
             </Button>
