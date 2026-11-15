@@ -59,6 +59,23 @@ ni logout real, ni refresh tokens). El frontend:
 - `obtenerSesionServidor()`: azúcar para Server Components/layouts — lee el token y construye la
   sesión en un solo paso.
 
+## Crear cuenta (`/registro`)
+
+`RegistroForm` sigue el diseño de Figma (escritorio y móvil comparten el mismo componente
+responsive):
+
+- **Contraseña con requisitos** (`core/domain/password.ts`, los mismos que `RegisterDto` en el
+  backend): 8 caracteres, una mayúscula, una minúscula, un número y un símbolo entre `!`, `@` y
+  `#`. `RequisitosPassword` marca cada uno mientras se escribe; `validarRegistro` devuelve un
+  solo mensaje con los que faltan.
+- **Mostrar contraseña**: casilla que alterna el campo entre `password` y `text`.
+- **Términos y privacidad**: casilla obligatoria (`aceptaTerminos`, que también exige el backend)
+  con enlaces a `/terminos` y `/privacidad`.
+- **Continuar con Google**: el botón está, pero por ahora solo avisa que estará disponible pronto
+  (falta configurar el inicio de sesión con Google).
+- `CrearUsuarioUseCase` (alta de personal por el ADMIN) **no** usa estos requisitos: su endpoint
+  sigue pidiendo mínimo 6 caracteres.
+
 ## Route Handlers de `/api/auth/*`
 
 - **`_shared.ts` → `autenticarContraBackend(ruta, request)`**: cuerpo compartido de login y
