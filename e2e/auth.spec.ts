@@ -38,7 +38,8 @@ test.describe("Autenticación (e2e, stack completo)", () => {
     await page.getByLabel(/^nombres$/i).fill("Paciente");
     await page.getByLabel(/^apellidos$/i).fill("E2E Playwright");
     await page.getByLabel(/correo electrónico/i).fill(`paciente.e2e.${sufijo}@example.com`);
-    await page.getByLabel(/^contraseña$/i).fill("clave123456");
+    await page.getByLabel(/^contraseña$/i).fill("Clave123456!");
+    await page.getByLabel(/acepto los términos de uso/i).check();
     await page.getByRole("button", { name: "Crear cuenta" }).click();
 
     await expect(page).toHaveURL(/\/inicio/);
