@@ -71,8 +71,15 @@ responsive):
 - **Mostrar contraseña**: casilla que alterna el campo entre `password` y `text`.
 - **Términos y privacidad**: casilla obligatoria (`aceptaTerminos`, que también exige el backend)
   con enlaces a `/terminos` y `/privacidad`.
-- **Continuar con Google**: el botón está, pero por ahora solo avisa que estará disponible pronto
-  (falta configurar el inicio de sesión con Google).
+- **Continuar con Google** (también en `/login`): con `GOOGLE_CLIENT_ID` configurado, `BotonGoogle` muestra el
+  botón oficial de Google Identity Services (el Client ID se pide en tiempo de ejecución a
+  `/api/auth/google/config`). Al elegir la cuenta, Google entrega un token de identidad que
+  `AccesoGoogle` envía a `POST /api/auth/google` (→ backend `/auth/google`, que lo verifica):
+  - el correo ya tiene cuenta → se inicia sesión (cookie httpOnly, como en el login normal);
+  - no la tiene → el backend responde **428** con el perfil de Google; el token y el perfil se guardan
+    en `sessionStorage` (`lib/registro-google.ts`) y `/registro` muestra `RegistroGoogleForm` con
+    nombres y apellidos precargados, para pedir documento, teléfono y la aceptación de términos.
+  - sin `GOOGLE_CLIENT_ID` el botón avisa que no está activado y el resto de la app sigue igual.
 - `CrearUsuarioUseCase` (alta de personal por el ADMIN) **no** usa estos requisitos: su endpoint
   sigue pidiendo mínimo 6 caracteres.
 
