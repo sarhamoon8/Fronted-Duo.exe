@@ -16,7 +16,10 @@ app/
   (auth)/
     layout.tsx                   Panel lateral cerceta (desktop) / cabecera compacta (móvil)
     login/page.tsx               → <LoginForm />
-    registro/page.tsx            → <RegistroForm />
+    registro/page.tsx            → <RegistroForm /> (Crear cuenta)
+
+  terminos/page.tsx              Términos de uso (pública)
+  privacidad/page.tsx            Política de privacidad (pública)
 
   (app)/
     layout.tsx                   Resuelve la sesión en servidor, redirige si no hay, monta <AppShell>

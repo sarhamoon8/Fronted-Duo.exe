@@ -1,4 +1,5 @@
 import type { EntidadMedica, PuntoDispensacion, Servicio, Ventanilla } from "@/core/domain/entities/catalogo";
+import type { Cita, DisponibilidadCitas, EstadoCita } from "@/core/domain/entities/cita";
 import type { InscripcionEspera } from "@/core/domain/entities/lista-espera";
 import type { ExistenciaMedicamento } from "@/core/domain/entities/medicamento";
 import type {
@@ -34,6 +35,9 @@ export interface TurnoDto {
   estado: string;
   prioridad: boolean;
   posicion: number | null;
+  minutosEstimadosLlamado?: number | null;
+  horaEstimadaLlamado?: string | null;
+  llamableDesde?: string | null;
   horaLlamado: string | null;
   horaFinalizacion: string | null;
   creadoEn: string;
@@ -57,6 +61,9 @@ export const TurnoMapper = {
     return {
       ...dto,
       estado: dto.estado as EstadoTurno,
+      minutosEstimadosLlamado: dto.minutosEstimadosLlamado ?? null,
+      horaEstimadaLlamado: dto.horaEstimadaLlamado ? new Date(dto.horaEstimadaLlamado) : null,
+      llamableDesde: dto.llamableDesde ? new Date(dto.llamableDesde) : null,
       horaLlamado: dto.horaLlamado ? new Date(dto.horaLlamado) : null,
       horaFinalizacion: dto.horaFinalizacion ? new Date(dto.horaFinalizacion) : null,
       creadoEn: new Date(dto.creadoEn),
@@ -94,6 +101,35 @@ export interface ExistenciaMedicamentoDto {
   disponible: boolean;
   fechaVencimiento: string;
 }
+
+export interface CitaDto {
+  id: string;
+  pacienteId: string;
+  puntoId: string;
+  especialidad: string;
+  fechaHora: string;
+  estado: string;
+  profesional: { id: string; nombres: string; apellidos: string; registroMedico: string } | null;
+}
+
+export interface DisponibilidadCitasDto {
+  fecha: string;
+  especialidad: string;
+  puntoId: string;
+  franjas: { hora: string; fechaHora: string; doctoresDisponibles: number }[];
+}
+
+export const CitaMapper = {
+  toDomain(dto: CitaDto): Cita {
+    return { ...dto, estado: dto.estado as EstadoCita, fechaHora: new Date(dto.fechaHora) };
+  },
+};
+
+export const DisponibilidadCitasMapper = {
+  toDomain(dto: DisponibilidadCitasDto): DisponibilidadCitas {
+    return { ...dto, franjas: dto.franjas.map((f) => ({ ...f, fechaHora: new Date(f.fechaHora) })) };
+  },
+};
 
 export const InscripcionEsperaMapper = {
   toDomain(dto: InscripcionEsperaDto): InscripcionEspera {

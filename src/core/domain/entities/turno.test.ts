@@ -4,6 +4,8 @@ import {
   codigoTurno,
   estaActivo,
   estimarEspera,
+  minutosParaLlamado,
+  puedeLlamarse,
   puedeAvanzar,
   puedeCancelar,
   siguienteEstado,
@@ -83,5 +85,24 @@ describe("estimarEspera", () => {
 
   it("multiplica (posicion - 1) por los minutos promedio por turno", () => {
     expect(estimarEspera(4)).toBe(18); // (4-1) * 6
+  });
+});
+
+describe("margen de llegada y tiempo estimado de llamado", () => {
+  const desde = new Date("2026-11-16T14:15:00.000Z");
+
+  it("puedeLlamarse es falso antes de llamableDesde y verdadero desde esa hora", () => {
+    expect(puedeLlamarse({ llamableDesde: desde }, new Date("2026-11-16T14:14:59.000Z"))).toBe(false);
+    expect(puedeLlamarse({ llamableDesde: desde }, desde)).toBe(true);
+  });
+
+  it("puedeLlamarse es verdadero si el backend no manda llamableDesde", () => {
+    expect(puedeLlamarse({ llamableDesde: null }, new Date())).toBe(true);
+  });
+
+  it("minutosParaLlamado prefiere el estimado del backend y si no usa el local", () => {
+    expect(minutosParaLlamado({ minutosEstimadosLlamado: 22, posicion: 4 })).toBe(22);
+    expect(minutosParaLlamado({ minutosEstimadosLlamado: null, posicion: 4 })).toBe(18);
+    expect(minutosParaLlamado({ minutosEstimadosLlamado: null, posicion: null })).toBeNull();
   });
 });

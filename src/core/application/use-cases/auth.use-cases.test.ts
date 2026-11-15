@@ -47,17 +47,38 @@ describe("validarRegistro", () => {
     nombres: "Ana",
     apellidos: "Pérez",
     email: "ana@example.com",
-    password: "clave123",
+    password: "Clave123!",
+    aceptaTerminos: true,
   };
 
   it("no devuelve errores con datos válidos", () => {
     expect(validarRegistro(datosValidos)).toEqual([]);
   });
 
-  it("rechaza una contraseña de menos de 6 caracteres", () => {
-    expect(validarRegistro({ ...datosValidos, password: "123" })).toContain(
-      "La contraseña debe tener al menos 6 caracteres.",
+  it("pide todos los requisitos de la contraseña que no se cumplen", () => {
+    expect(validarRegistro({ ...datosValidos, password: "abc" })).toContain(
+      "La contraseña debe tener al menos 8 caracteres, una letra mayúscula, un número, un símbolo especial (!, @ o #).",
     );
+  });
+
+  it.each([
+    ["Clave12!", []],
+    ["Clave12#", []],
+    ["clave123!", ["una letra mayúscula"]],
+    ["CLAVE123!", ["una letra minúscula"]],
+    ["ClaveClave!", ["un número"]],
+    ["Clave12345", ["un símbolo especial (!, @ o #)"]],
+    ["Clave123$", ["un símbolo especial (!, @ o #)"]],
+    ["Cl1!", ["al menos 8 caracteres"]],
+  ])("contraseña %s: le falta %j", (password, faltan) => {
+    const errores = validarRegistro({ ...datosValidos, password });
+    expect(errores).toEqual(faltan.length ? [`La contraseña debe tener ${faltan.join(", ")}.`] : []);
+  });
+
+  it("exige aceptar los términos y la política de privacidad", () => {
+    expect(validarRegistro({ ...datosValidos, aceptaTerminos: false })).toEqual([
+      "Debes aceptar los términos de uso y la política de privacidad.",
+    ]);
   });
 
   it("acumula todos los errores de campos vacíos a la vez", () => {
@@ -68,6 +89,7 @@ describe("validarRegistro", () => {
       apellidos: "",
       email: "x",
       password: "",
+      aceptaTerminos: false,
     });
     expect(errores.length).toBeGreaterThanOrEqual(5);
   });
@@ -104,7 +126,8 @@ describe("RegistrarseUseCase", () => {
         nombres: "Ana",
         apellidos: "Pérez",
         email: "ana@example.com",
-        password: "clave123",
+        password: "Clave123!",
+        aceptaTerminos: true,
       }),
     ).rejects.toBeInstanceOf(AppError);
     expect(repo.registrarse).not.toHaveBeenCalled();
@@ -120,8 +143,9 @@ describe("RegistrarseUseCase", () => {
       nombres: " Ana ",
       apellidos: " Pérez ",
       email: " Ana@Example.com ",
-      password: "clave123",
+      password: "Clave123!",
       telefono: "  ",
+      aceptaTerminos: true,
     });
 
     expect(repo.registrarse).toHaveBeenCalledWith({
@@ -130,8 +154,9 @@ describe("RegistrarseUseCase", () => {
       nombres: "Ana",
       apellidos: "Pérez",
       email: "ana@example.com",
-      password: "clave123",
+      password: "Clave123!",
       telefono: undefined,
+      aceptaTerminos: true,
     });
   });
 });
