@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  CalendarDays,
   Building2,
   CheckCircle2,
   ClockFading,
@@ -33,6 +34,7 @@ export const NAVEGACION: Record<Rol, ItemNavegacion[]> = {
   PACIENTE: [
     { href: "/inicio", etiqueta: "Inicio", icono: House },
     { href: "/turnos", etiqueta: "Mis turnos", corta: "Turnos", icono: Ticket },
+    { href: "/citas", etiqueta: "Mis citas", corta: "Citas", icono: CalendarDays },
     { href: "/medicamentos", etiqueta: "Medicamentos", corta: "Medicinas", icono: Pill },
     { href: "/lista-espera", etiqueta: "Lista de espera", corta: "Espera", icono: Hourglass },
     { href: "/historial", etiqueta: "Historial", icono: ClockFading, soloEscritorio: true },

@@ -19,6 +19,7 @@ import {
 import { AppError, mensajeDeError } from "@/core/domain/errors";
 import { ESTADO_TURNO_ETIQUETA, codigoCorto, type Turno } from "@/core/domain/entities/turno";
 import { casosDeUso } from "@/infrastructure/container";
+import { puedeLlamarse } from "@/core/domain/entities/turno";
 import { useAhora } from "@/presentation/hooks/use-ahora";
 import { INTERVALO_COLA_MS, useCola, type ColaState } from "@/presentation/hooks/use-cola";
 import { cn, esHoy, formatearHora, horaBogota, minutosDesde } from "@/presentation/lib/cn";
@@ -45,6 +46,8 @@ export function PanelFila() {
   const enCurso = turnos.filter((t) => t.estado === "EN_CURSO");
   const actual = enCurso[0] ?? null;
   const siguiente = cola.fila?.siguiente ?? null;
+  // Margen de llegada: un turno recién pedido todavía no se puede llamar.
+  const siguienteLlamable = siguiente ? puedeLlamarse(siguiente, new Date(ahora)) : false;
   const atendidosHoy = turnos.filter((t) => t.estado === "ATENDIDO" && esHoy(t.creadoEn)).length;
   const esperaProm = pendientes.length
     ? Math.round(pendientes.reduce((s, t) => s + minutosDesde(t.creadoEn, ahora), 0) / pendientes.length)
@@ -179,12 +182,16 @@ export function PanelFila() {
                     className="mt-4 w-full"
                     onClick={() => ejecutar(siguiente, "avanzar")}
                     cargando={accion === `avanzar:${siguiente.id}`}
-                    disabled={accion !== null}
+                    disabled={accion !== null || !siguienteLlamable}
                     icono={<Megaphone className="size-4" aria-hidden="true" />}
                   >
                     Llamar al siguiente
                   </Button>
-                  <p className="mt-2 text-center text-xs text-cerceta-noche/85">El turno pasará a “En atención”.</p>
+                  <p className="mt-2 text-center text-xs text-cerceta-noche/85">
+                    {siguienteLlamable || !siguiente.llamableDesde
+                      ? "El turno pasará a “En atención”."
+                      : `Se podrá llamar desde las ${formatearHora(siguiente.llamableDesde)}: la persona tiene ese margen para llegar a la sede.`}
+                  </p>
                 </>
               ) : (
                 <p className="mt-3 text-sm text-cerceta-noche">No hay turnos en espera.</p>
@@ -281,7 +288,7 @@ function ColaActual({
                         etiqueta={codigoCorto(t.id)}
                         deshabilitado={accion !== null}
                         acciones={[
-                          { texto: "Llamar", onClick: () => ejecutar(t, "avanzar") },
+                          ...(puedeLlamarse(t, new Date(ahora)) ? [{ texto: "Llamar", onClick: () => ejecutar(t, "avanzar") }] : []),
                           { texto: "Cancelar turno", onClick: () => ejecutar(t, "cancelar", `¿Cancelar el turno ${codigoCorto(t.id)}?`) },
                         ]}
                       />

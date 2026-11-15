@@ -23,7 +23,8 @@ async function llenarFormularioValido(usuario: ReturnType<typeof userEvent.setup
   await usuario.type(screen.getByLabelText(/^nombres$/i), "Ana");
   await usuario.type(screen.getByLabelText(/apellidos/i), "Pérez");
   await usuario.type(screen.getByLabelText(/correo electrónico/i), "ana@example.com");
-  await usuario.type(screen.getByLabelText(/contraseña/i), "clave123");
+  await usuario.type(screen.getByLabelText(/^contraseña$/i), "Clave123!");
+  await usuario.click(screen.getByLabelText(/acepto los términos de uso/i));
 }
 
 describe("RegistroForm", () => {
@@ -60,6 +61,93 @@ describe("RegistroForm", () => {
 
     expect(registrarseMock).toHaveBeenCalled();
     expect(routerReplaceMock).toHaveBeenCalledWith("/inicio");
+  });
+
+  it("marca cada requisito de la contraseña a medida que se cumple", async () => {
+    const usuario = userEvent.setup();
+    render(<RegistroForm />);
+    const requisitos = screen.getByRole("list");
+    expect(requisitos).toHaveTextContent("Una letra mayúscula (pendiente)");
+
+    await usuario.type(screen.getByLabelText(/^contraseña$/i), "Clave");
+
+    expect(requisitos).toHaveTextContent("Una letra mayúscula (cumplido)");
+    expect(requisitos).toHaveTextContent("Una letra minúscula (cumplido)");
+    expect(requisitos).toHaveTextContent("8 caracteres (pendiente)");
+    expect(requisitos).toHaveTextContent("Un número (pendiente)");
+    expect(requisitos).toHaveTextContent("Un símbolo especial: !, @ o # (pendiente)");
+  });
+
+  it("no registra una contraseña que incumple los requisitos", async () => {
+    const usuario = userEvent.setup();
+    render(<RegistroForm />);
+
+    await llenarFormularioValido(usuario);
+    await usuario.clear(screen.getByLabelText(/^contraseña$/i));
+    await usuario.type(screen.getByLabelText(/^contraseña$/i), "clave");
+    await usuario.click(screen.getByRole("button", { name: /crear cuenta/i }));
+
+    expect(await screen.findByText(/la contraseña debe tener al menos 8 caracteres/i)).toBeInTheDocument();
+    expect(registrarseMock).not.toHaveBeenCalled();
+  });
+
+  it("alterna entre ocultar y mostrar la contraseña", async () => {
+    const usuario = userEvent.setup();
+    render(<RegistroForm />);
+    const campo = screen.getByLabelText(/^contraseña$/i);
+    expect(campo).toHaveAttribute("type", "password");
+
+    await usuario.click(screen.getByLabelText(/mostrar contraseña/i));
+    expect(campo).toHaveAttribute("type", "text");
+
+    await usuario.click(screen.getByLabelText(/mostrar contraseña/i));
+    expect(campo).toHaveAttribute("type", "password");
+  });
+
+  it("exige aceptar los términos antes de registrar", async () => {
+    const usuario = userEvent.setup();
+    render(<RegistroForm />);
+
+    await llenarFormularioValido(usuario);
+    await usuario.click(screen.getByLabelText(/acepto los términos de uso/i));
+    await usuario.click(screen.getByRole("button", { name: /crear cuenta/i }));
+
+    expect(await screen.findByText(/debes aceptar los términos de uso/i)).toBeInTheDocument();
+    expect(registrarseMock).not.toHaveBeenCalled();
+  });
+
+  it("envía la aceptación de términos al registrar", async () => {
+    registrarseMock.mockResolvedValue({ id: "u1", nombre: "Ana", email: "ana@example.com", rol: "PACIENTE", expiraEn: null });
+    const usuario = userEvent.setup();
+    render(<RegistroForm />);
+
+    await llenarFormularioValido(usuario);
+    await usuario.click(screen.getByRole("button", { name: /crear cuenta/i }));
+
+    expect(registrarseMock).toHaveBeenCalledWith(expect.objectContaining({ aceptaTerminos: true, password: "Clave123!" }));
+  });
+
+  it("enlaza los términos de uso y la política de privacidad", () => {
+    render(<RegistroForm />);
+
+    expect(screen.getByRole("link", { name: "Términos de uso" })).toHaveAttribute("href", "/terminos");
+    expect(screen.getByRole("link", { name: "Política de privacidad" })).toHaveAttribute("href", "/privacidad");
+  });
+
+  it("ofrece continuar con Google y avisa que aún no está disponible", async () => {
+    const usuario = userEvent.setup();
+    render(<RegistroForm />);
+
+    await usuario.click(screen.getByRole("button", { name: /continuar con google/i }));
+
+    expect(screen.getByText(/estará disponible pronto/i)).toBeInTheDocument();
+    expect(registrarseMock).not.toHaveBeenCalled();
+  });
+
+  it("permite volver a iniciar sesión", () => {
+    render(<RegistroForm />);
+
+    expect(screen.getByRole("link", { name: /volver a iniciar sesión/i })).toHaveAttribute("href", "/login");
   });
 
   it("muestra los mensajes del backend si el registro es rechazado", async () => {

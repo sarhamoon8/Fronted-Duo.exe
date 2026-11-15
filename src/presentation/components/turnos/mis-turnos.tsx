@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, Clock, MapPin, Megaphone, Plus, RefreshCw, Smartphone, Ticket, TriangleAlert } from "lucide-react";
 import { AppError, mensajeDeError } from "@/core/domain/errors";
-import { ESTADO_TURNO_ETIQUETA, codigoTurno, estaActivo, estimarEspera, puedeCancelar } from "@/core/domain/entities/turno";
+import { ESTADO_TURNO_ETIQUETA, codigoTurno, estaActivo, minutosParaLlamado, puedeCancelar } from "@/core/domain/entities/turno";
 import { casosDeUso } from "@/infrastructure/container";
 import { useAhora } from "@/presentation/hooks/use-ahora";
 import { useMisTurnos, type TurnoConNombres } from "@/presentation/hooks/use-mis-turnos";
@@ -103,7 +103,7 @@ function Seguimiento({
   const enCurso = turno.estado === "EN_CURSO";
   const posicion = turno.posicion;
   const antes = posicion ? posicion - 1 : 0;
-  const espera = estimarEspera(posicion) ?? 0;
+  const espera = minutosParaLlamado(turno) ?? 0;
   const avance = cercania(posicion);
   const actualizado = haceCuanto(new Date(actualizadoEn ?? ahora), ahora);
 
@@ -147,7 +147,8 @@ function Seguimiento({
           "El personal de atención ya llamó tu turno."
         ) : (
           <>
-            Dirígete a la sede cuando falten 2 personas.
+            {turno.horaEstimadaLlamado ? `Te llamaremos en aproximadamente ${espera} min (hacia las ${formatearHora(turno.horaEstimadaLlamado)}). ` : `Te llamaremos en aproximadamente ${espera} min. `}
+            {turno.llamableDesde ? `No te llamaremos antes de las ${formatearHora(turno.llamableDesde)}, así que tienes tiempo para llegar a la sede.` : "Dirígete a la sede con tiempo."}
             <span className="hidden lg:inline"> Debes presentar tu documento y fórmula médica vigente.</span>
           </>
         )}

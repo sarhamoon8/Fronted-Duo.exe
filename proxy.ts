@@ -19,6 +19,7 @@ const RUTAS_POR_ROL: { prefijo: string; roles: Rol[] }[] = [
   { prefijo: "/farmacia", roles: TODOS },
   { prefijo: "/inicio", roles: TODOS },
   { prefijo: "/lista-espera", roles: TODOS },
+  { prefijo: "/citas", roles: ["PACIENTE"] },
   { prefijo: "/notificaciones", roles: TODOS },
 ];
 

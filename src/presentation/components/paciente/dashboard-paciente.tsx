@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Bell, BellDot, CalendarPlus, Clock, Headphones, History, Pill, Plus, Ticket, TicketPlus } from "lucide-react";
-import { codigoTurno, estaActivo, estimarEspera } from "@/core/domain/entities/turno";
+import { codigoTurno, estaActivo, minutosParaLlamado } from "@/core/domain/entities/turno";
 import { useMisTurnos, type TurnoConNombres } from "@/presentation/hooks/use-mis-turnos";
 import { cn, fechaLarga, formatearHora, saludo } from "@/presentation/lib/cn";
 import { RESERVA_LISTA } from "@/presentation/mocks/demo";
@@ -17,7 +17,7 @@ export function DashboardPaciente() {
   const usuario = useSesionStore((s) => s.usuario);
   const { turnos, cargando } = useMisTurnos();
   const activo = cargando ? null : turnos.find((t) => estaActivo(t.estado)) ?? null;
-  const espera = activo ? estimarEspera(activo.posicion) : null;
+  const espera = activo ? minutosParaLlamado(activo) : null;
   const primerNombre = usuario?.nombre.split(" ")[0] ?? "";
 
   return (
@@ -46,7 +46,7 @@ export function DashboardPaciente() {
           {activo.entidadNombre} ·{" "}
           {activo.estado === "EN_CURSO"
             ? "Es tu turno: acércate a la ventanilla."
-            : `Faltan aproximadamente ${espera} minutos. Te avisaremos cuando se acerque tu llamado.`}
+            : `Te llamaremos en aproximadamente ${espera} minutos${activo.horaEstimadaLlamado ? ` (hacia las ${formatearHora(activo.horaEstimadaLlamado)})` : ""}. Tienes tiempo para llegar a la sede.`}
         </Alert>
         </div>
       )}

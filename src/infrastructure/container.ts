@@ -44,6 +44,16 @@ import {
 import { CrearVentanillaUseCase, ListarVentanillasUseCase } from "@/core/application/use-cases/ventanillas.use-cases";
 import { HttpAuthRepository } from "./repositories/auth.repository";
 import { HttpCatalogoRepository } from "./repositories/catalogo.repository";
+import {
+  AgendarCitaUseCase,
+  CancelarCitaUseCase,
+  ConsultarDisponibilidadCitasUseCase,
+  ListarProfesionalesUseCase,
+  MisCitasUseCase,
+  ReprogramarCitaUseCase,
+} from "@/core/application/use-cases/citas.use-cases";
+import { HttpCitaRepository } from "./repositories/cita.repository";
+import { HttpProfesionalRepository } from "./repositories/profesional.repository";
 import { HttpListaEsperaRepository } from "./repositories/lista-espera.repository";
 import { HttpMedicamentoRepository } from "./repositories/medicamento.repository";
 import { HttpNotificacionRepository } from "./repositories/notificacion.repository";
@@ -59,6 +69,8 @@ const ventanillaRepo = new HttpVentanillaRepository();
 const listaEsperaRepo = new HttpListaEsperaRepository();
 const notificacionRepo = new HttpNotificacionRepository();
 const medicamentoRepo = new HttpMedicamentoRepository();
+const citaRepo = new HttpCitaRepository();
+const profesionalRepo = new HttpProfesionalRepository();
 
 export const casosDeUso = {
   iniciarSesion: new IniciarSesionUseCase(authRepo),
@@ -95,5 +107,12 @@ export const casosDeUso = {
   consultarExistencias: new ConsultarExistenciasUseCase(medicamentoRepo),
   crearMedicamento: new CrearMedicamentoUseCase(medicamentoRepo),
   registrarExistencia: new RegistrarExistenciaUseCase(medicamentoRepo),
+
+  consultarDisponibilidadCitas: new ConsultarDisponibilidadCitasUseCase(citaRepo),
+  agendarCita: new AgendarCitaUseCase(citaRepo),
+  misCitas: new MisCitasUseCase(citaRepo),
+  cancelarCita: new CancelarCitaUseCase(citaRepo),
+  reprogramarCita: new ReprogramarCitaUseCase(citaRepo),
+  listarProfesionales: new ListarProfesionalesUseCase(profesionalRepo),
 
 } as const;
