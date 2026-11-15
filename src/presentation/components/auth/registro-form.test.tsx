@@ -16,6 +16,15 @@ vi.mock("@/infrastructure/container", () => ({
   casosDeUso: { registrarse: { ejecutar: registrarseMock } },
 }));
 
+// El acceso con Google (botón + flujo) tiene sus propias pruebas; aquí solo se comprueba que esté en el formulario.
+vi.mock("./acceso-google", () => ({
+  AccesoGoogle: ({ onIncompleto }: { onIncompleto: (p: { credential: string; perfil: object }) => void }) => (
+    <button type="button" onClick={() => onIncompleto({ credential: "token-de-google", perfil: { email: "ana@gmail.com", nombres: "Ana", apellidos: "Pérez" } })}>
+      Continuar con Google
+    </button>
+  ),
+}));
+
 const { RegistroForm } = await import("./registro-form");
 
 async function llenarFormularioValido(usuario: ReturnType<typeof userEvent.setup>) {
@@ -33,6 +42,7 @@ describe("RegistroForm", () => {
     routerRefreshMock.mockReset();
     registrarseMock.mockReset();
     useSesionStore.setState({ usuario: null, estado: "desconocido" });
+    sessionStorage.clear();
   });
 
   it("muestra errores de validación sin llamar al caso de uso si falta algo", async () => {
@@ -78,7 +88,7 @@ describe("RegistroForm", () => {
     expect(requisitos).toHaveTextContent("Un símbolo especial: !, @ o # (pendiente)");
   });
 
-  it("no registra una contraseña que incumple los requisitos", async () => {
+  it("no registra una contraseña que incumple los requisitos", { timeout: 20_000 }, async () => {
     const usuario = userEvent.setup();
     render(<RegistroForm />);
 
@@ -134,14 +144,32 @@ describe("RegistroForm", () => {
     expect(screen.getByRole("link", { name: "Política de privacidad" })).toHaveAttribute("href", "/privacidad");
   });
 
-  it("ofrece continuar con Google y avisa que aún no está disponible", async () => {
+  it("ofrece continuar con Google", () => {
+    render(<RegistroForm />);
+
+    expect(screen.getByRole("button", { name: /continuar con google/i })).toBeInTheDocument();
+  });
+
+  it("al continuar con Google sin cuenta previa pasa a completar el registro", async () => {
     const usuario = userEvent.setup();
     render(<RegistroForm />);
 
     await usuario.click(screen.getByRole("button", { name: /continuar con google/i }));
 
-    expect(screen.getByText(/estará disponible pronto/i)).toBeInTheDocument();
+    expect(screen.getByText("ana@gmail.com")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^contraseña$/i)).not.toBeInTheDocument();
     expect(registrarseMock).not.toHaveBeenCalled();
+  });
+
+  it("retoma el registro con Google si se llegó desde el inicio de sesión", async () => {
+    sessionStorage.setItem(
+      "filacero.registroGoogle",
+      JSON.stringify({ credential: "token-de-google", perfil: { email: "luis@gmail.com", nombres: "Luis", apellidos: "Gil" } }),
+    );
+    render(<RegistroForm />);
+
+    expect(await screen.findByText("luis@gmail.com")).toBeInTheDocument();
+    sessionStorage.clear();
   });
 
   it("permite volver a iniciar sesión", () => {

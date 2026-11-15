@@ -9,11 +9,15 @@ import type { ExistenciaMedicamento, Medicamento } from "../entities/medicamento
 import type { Notificacion } from "../entities/notificacion";
 import type { Sesion } from "../entities/sesion";
 import type { Turno } from "../entities/turno";
-import type { Credenciales, DatosRegistro, NuevoUsuario, Usuario } from "../entities/usuario";
+import type { Credenciales, DatosGoogle, DatosRegistro, NuevoUsuario, PerfilGoogle, Usuario } from "../entities/usuario";
+
+/** Resultado de continuar con Google: sesión iniciada, o faltan datos para crear la cuenta. */
+export type ResultadoGoogle = { tipo: "sesion"; sesion: Sesion } | { tipo: "incompleto"; perfil: PerfilGoogle };
 
 export interface AuthRepository {
   iniciarSesion(credenciales: Credenciales): Promise<Sesion>;
   registrarse(datos: DatosRegistro): Promise<Sesion>;
+  accederConGoogle(datos: DatosGoogle): Promise<ResultadoGoogle>;
   cerrarSesion(): Promise<void>;
   obtenerSesion(): Promise<Sesion | null>;
 }

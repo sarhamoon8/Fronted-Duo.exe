@@ -8,19 +8,15 @@ import { validarRegistro } from "@/core/application/use-cases/auth.use-cases";
 import { AppError, mensajeDeError } from "@/core/domain/errors";
 import { casosDeUso } from "@/infrastructure/container";
 import { useSesionStore } from "@/presentation/stores/sesion.store";
-import { Alert, ListaErrores } from "@/presentation/components/ui/alert";
+import { ListaErrores } from "@/presentation/components/ui/alert";
 import { Button } from "@/presentation/components/ui/button";
 import { Checkbox } from "@/presentation/components/ui/checkbox";
 import { Input, Select } from "@/presentation/components/ui/field";
-import { BotonGoogle } from "./boton-google";
+import { guardarPendienteGoogle, usePendienteGoogle } from "@/presentation/lib/registro-google";
+import { AccesoGoogle } from "./acceso-google";
+import { RegistroGoogleForm } from "./registro-google-form";
 import { RequisitosPassword } from "./requisitos-password";
-
-const TIPOS_DOCUMENTO = [
-  { valor: "CC", etiqueta: "Cédula de ciudadanía" },
-  { valor: "TI", etiqueta: "Tarjeta de identidad" },
-  { valor: "CE", etiqueta: "Cédula de extranjería" },
-  { valor: "PA", etiqueta: "Pasaporte" },
-] as const;
+import { TIPOS_DOCUMENTO } from "./tipos-documento";
 
 const VACIO = {
   numeroDocumento: "",
@@ -42,7 +38,8 @@ export function RegistroForm() {
   const [errores, setErrores] = useState<string[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
-  const [avisoGoogle, setAvisoGoogle] = useState(false);
+  // Registro con Google a medias: el correo de Google no tenía cuenta y falta el documento.
+  const pendiente = usePendienteGoogle();
   const idPassword = useId();
   const idRequisitos = `${idPassword}-requisitos`;
 
@@ -66,6 +63,8 @@ export function RegistroForm() {
       setEnviando(false);
     }
   }
+
+  if (pendiente) return <RegistroGoogleForm pendiente={pendiente} />;
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
@@ -137,12 +136,7 @@ export function RegistroForm() {
       <div className="flex items-center gap-3 text-xs text-tinta-tenue" role="separator" aria-label="o">
         <span className="h-px flex-1 bg-borde" />o<span className="h-px flex-1 bg-borde" />
       </div>
-      <BotonGoogle onClick={() => setAvisoGoogle(true)} />
-      {avisoGoogle && (
-        <Alert tono="info" titulo="Registro con Google">
-          Esta opción estará disponible pronto. Por ahora crea tu cuenta con tu correo electrónico.
-        </Alert>
-      )}
+      <AccesoGoogle onIncompleto={guardarPendienteGoogle} />
 
       <Checkbox
         name="aceptaTerminos"

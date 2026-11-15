@@ -30,6 +30,7 @@ servicios y funcionarios.
 | Variable | Dónde se usa | Descripción |
 |---|---|---|
 | `API_URL` | Solo servidor | URL del backend NestJS (por defecto `http://localhost:3000`). |
+| `GOOGLE_CLIENT_ID` | Servidor (se expone en `/api/auth/google/config`) | ID de cliente de OAuth para "Continuar con Google"; debe ser el mismo que usa el backend. Vacío = acceso con Google desactivado. |
 | `AUTH_COOKIE_NAME` | Solo servidor | Nombre de la cookie httpOnly del JWT (`filacero_token`). |
 
 ## Arquitectura

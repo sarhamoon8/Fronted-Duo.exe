@@ -14,6 +14,10 @@ export const serverEnv = {
   get authCookieName(): string {
     return process.env.AUTH_COOKIE_NAME ?? "filacero_token";
   },
+  /** Client ID de OAuth de Google ("Continuar con Google"); null si no está configurado. */
+  get googleClientId(): string | null {
+    return process.env.GOOGLE_CLIENT_ID?.trim() || null;
+  },
   get isProduction(): boolean {
     return process.env.NODE_ENV === "production";
   },

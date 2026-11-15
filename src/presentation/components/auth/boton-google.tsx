@@ -1,5 +1,44 @@
-import type { ButtonHTMLAttributes } from "react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/presentation/lib/cn";
+
+interface RespuestaGoogle {
+  credential: string;
+}
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize(config: { client_id: string; callback: (r: RespuestaGoogle) => void }): void;
+          renderButton(elemento: HTMLElement, opciones: Record<string, unknown>): void;
+        };
+      };
+    };
+  }
+}
+
+const GIS_SRC = "https://accounts.google.com/gsi/client";
+let cargaGis: Promise<void> | null = null;
+
+/** Carga (una sola vez) la librería de Google Identity Services. */
+function cargarGis(): Promise<void> {
+  if (window.google?.accounts?.id) return Promise.resolve();
+  cargaGis ??= new Promise<void>((resolver, rechazar) => {
+    const script = document.createElement("script");
+    script.src = GIS_SRC;
+    script.async = true;
+    script.onload = () => resolver();
+    script.onerror = () => {
+      cargaGis = null;
+      rechazar(new Error("No se pudo cargar Google"));
+    };
+    document.head.appendChild(script);
+  });
+  return cargaGis;
+}
 
 /** Logotipo de Google (colores de marca; es una marca registrada, se usa tal cual). */
 function IconoGoogle() {
@@ -13,17 +52,78 @@ function IconoGoogle() {
   );
 }
 
-export function BotonGoogle({ className, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+const CLASE_BOTON =
+  "inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-borde bg-superficie px-4 text-sm font-semibold text-tinta " +
+  "transition duration-150 hover:bg-neutro active:scale-[0.97] disabled:cursor-wait disabled:opacity-60";
+
+/**
+ * "Continuar con Google". Con GOOGLE_CLIENT_ID configurado muestra el botón
+ * oficial de Google Identity Services y entrega el token de identidad en
+ * `onCredential`. Sin Client ID muestra un botón equivalente que avisa por
+ * `onNoDisponible` (la app sigue funcionando con correo y contraseña).
+ */
+export function BotonGoogle({
+  onCredential,
+  onNoDisponible,
+  className,
+}: {
+  onCredential: (credential: string) => void;
+  onNoDisponible: () => void;
+  className?: string;
+}) {
+  // undefined = consultando la configuración; null = sin configurar.
+  const [clientId, setClientId] = useState<string | null | undefined>(undefined);
+  const contenedor = useRef<HTMLDivElement>(null);
+  const alRecibir = useRef(onCredential);
+  useEffect(() => {
+    alRecibir.current = onCredential;
+  }, [onCredential]);
+
+  useEffect(() => {
+    let activo = true;
+    fetch("/api/auth/google/config")
+      .then((r) => (r.ok ? (r.json() as Promise<{ clientId: string | null }>) : { clientId: null }))
+      .then((d) => activo && setClientId(d.clientId))
+      .catch(() => activo && setClientId(null));
+    return () => {
+      activo = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!clientId) return;
+    let activo = true;
+    cargarGis()
+      .then(() => {
+        const el = contenedor.current;
+        if (!activo || !el || !window.google) return;
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (r) => alRecibir.current(r.credential),
+        });
+        window.google.accounts.id.renderButton(el, {
+          type: "standard",
+          theme: "outline",
+          size: "large",
+          text: "continue_with",
+          shape: "rectangular",
+          logo_alignment: "center",
+          locale: "es",
+          width: Math.min(400, Math.max(200, el.offsetWidth)),
+        });
+      })
+      .catch(() => activo && setClientId(null));
+    return () => {
+      activo = false;
+    };
+  }, [clientId]);
+
+  if (clientId) {
+    return <div ref={contenedor} role="group" aria-label="Continuar con Google" className={cn("flex min-h-12 w-full justify-center", className)} />;
+  }
+
   return (
-    <button
-      type="button"
-      className={cn(
-        "inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-borde bg-superficie px-4 text-sm font-semibold text-tinta",
-        "transition duration-150 hover:bg-neutro active:scale-[0.97]",
-        className,
-      )}
-      {...props}
-    >
+    <button type="button" disabled={clientId === undefined} onClick={onNoDisponible} className={cn(CLASE_BOTON, className)}>
       <IconoGoogle />
       Continuar con Google
     </button>
