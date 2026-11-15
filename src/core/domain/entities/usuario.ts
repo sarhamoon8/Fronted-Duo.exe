@@ -34,6 +34,8 @@ export interface DatosRegistro {
   email: string;
   password: string;
   telefono?: string;
+  /** Aceptó los términos de uso y el tratamiento de datos personales. */
+  aceptaTerminos: boolean;
 }
 
 /** Espejo de LoginDto (POST /auth/login). */

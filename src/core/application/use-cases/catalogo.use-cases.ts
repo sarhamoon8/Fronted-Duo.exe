@@ -1,6 +1,6 @@
 import type { CatalogoRepository, NuevoPunto, UsuarioRepository } from "../../domain/ports";
 import type { NuevoUsuario } from "../../domain/entities/usuario";
-import { validarRegistro } from "./auth.use-cases";
+import { validarDatosPersona } from "./auth.use-cases";
 import { AppError } from "../../domain/errors";
 
 export class ListarEntidadesUseCase {
@@ -57,7 +57,9 @@ export class ListarUsuariosUseCase {
 export class CrearUsuarioUseCase {
   constructor(private readonly repo: UsuarioRepository) {}
   ejecutar(datos: NuevoUsuario) {
-    const errores = validarRegistro(datos);
+    // POST /usuarios (solo ADMIN) sigue pidiendo MinLength(6); los requisitos de contraseña y los términos son del autorregistro.
+    const errores = validarDatosPersona(datos);
+    if (datos.password.length < 6) errores.push("La contraseña debe tener al menos 6 caracteres.");
     if (errores.length) throw new AppError(errores, 400);
     return this.repo.crear({
       ...datos,
