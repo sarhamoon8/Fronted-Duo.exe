@@ -47,6 +47,32 @@ describe("HttpAuthRepository", () => {
     expect(resultado).toEqual(sesion);
   });
 
+  it("accederConGoogle llama a POST /auth/google y devuelve la sesión", async () => {
+    vi.mocked(internalApi.post).mockResolvedValue({ data: { sesion } });
+
+    const resultado = await new HttpAuthRepository().accederConGoogle({ credential: "token" });
+
+    expect(internalApi.post).toHaveBeenCalledWith("/auth/google", { credential: "token" });
+    expect(resultado).toEqual({ tipo: "sesion", sesion });
+  });
+
+  it("accederConGoogle devuelve el perfil si el backend responde 428 (falta completar el registro)", async () => {
+    const perfil = { email: "ana@gmail.com", nombres: "Ana", apellidos: "Pérez" };
+    vi.mocked(internalApi.post).mockRejectedValue(
+      new AppError(["Completa tu registro para continuar con Google"], 428, "interna", { code: "REGISTRO_INCOMPLETO", perfil }),
+    );
+
+    const resultado = await new HttpAuthRepository().accederConGoogle({ credential: "token" });
+
+    expect(resultado).toEqual({ tipo: "incompleto", perfil });
+  });
+
+  it("accederConGoogle propaga los demás errores (token inválido, Google sin configurar)", async () => {
+    vi.mocked(internalApi.post).mockRejectedValue(new AppError(["No se pudo validar tu cuenta de Google"], 401));
+
+    await expect(new HttpAuthRepository().accederConGoogle({ credential: "malo" })).rejects.toMatchObject({ status: 401 });
+  });
+
   it("cerrarSesion llama a POST /auth/logout", async () => {
     vi.mocked(internalApi.post).mockResolvedValue({ data: undefined });
     const repo = new HttpAuthRepository();
