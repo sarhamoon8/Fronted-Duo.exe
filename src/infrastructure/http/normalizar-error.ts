@@ -42,7 +42,7 @@ export function normalizarError(
       : typeof crudo === "string" && crudo
         ? [crudo]
         : [MENSAJE_POR_STATUS[status] ?? `Error ${status}.`];
-    return new AppError(mensajes, status, origen);
+    return new AppError(mensajes, status, origen, body);
   }
 
   return new AppError(

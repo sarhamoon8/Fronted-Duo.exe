@@ -5,6 +5,7 @@
  * implementación concreta satisface cada puerto del dominio.
  */
 import {
+  AccederConGoogleUseCase,
   CerrarSesionUseCase,
   IniciarSesionUseCase,
   RegistrarseUseCase,
@@ -75,6 +76,7 @@ const profesionalRepo = new HttpProfesionalRepository();
 export const casosDeUso = {
   iniciarSesion: new IniciarSesionUseCase(authRepo),
   registrarse: new RegistrarseUseCase(authRepo),
+  accederConGoogle: new AccederConGoogleUseCase(authRepo),
   cerrarSesion: new CerrarSesionUseCase(authRepo),
 
   listarEntidades: new ListarEntidadesUseCase(catalogoRepo),

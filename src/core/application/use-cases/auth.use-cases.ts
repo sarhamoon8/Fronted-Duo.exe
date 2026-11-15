@@ -1,5 +1,5 @@
 import type { AuthRepository } from "../../domain/ports";
-import type { Credenciales, DatosRegistro } from "../../domain/entities/usuario";
+import type { Credenciales, DatosGoogle, DatosRegistro } from "../../domain/entities/usuario";
 import { AppError } from "../../domain/errors";
 import { reglasIncumplidas } from "../../domain/password";
 
@@ -58,6 +58,40 @@ export class RegistrarseUseCase {
       password: d.password,
       telefono: d.telefono?.trim() || undefined,
       aceptaTerminos: d.aceptaTerminos,
+    });
+  }
+}
+
+/** Mismas reglas que GoogleAuthDto: con documento se está creando la cuenta, y eso exige los términos. */
+export function validarAccesoGoogle(d: DatosGoogle): string[] {
+  const errores: string[] = [];
+  if (!d.credential) errores.push("No se recibió la autorización de Google. Intenta de nuevo.");
+  if (d.numeroDocumento !== undefined) {
+    if (!d.numeroDocumento.trim()) errores.push("Ingresa tu número de documento.");
+    if (!d.tipoDocumento?.trim()) errores.push("Selecciona tu tipo de documento.");
+    if (d.nombres !== undefined && !d.nombres.trim()) errores.push("Ingresa tus nombres.");
+    if (d.apellidos !== undefined && !d.apellidos.trim()) errores.push("Ingresa tus apellidos.");
+    if (!d.aceptaTerminos) errores.push("Debes aceptar los términos de uso y la política de privacidad.");
+  }
+  return errores;
+}
+
+/** Continuar con Google: inicia sesión si el correo ya tiene cuenta; si no, devuelve el perfil para completar el registro. */
+export class AccederConGoogleUseCase {
+  constructor(private readonly repo: AuthRepository) {}
+  async ejecutar(d: DatosGoogle) {
+    const errores = validarAccesoGoogle(d);
+    if (errores.length) throw new AppError(errores, 400);
+    return this.repo.accederConGoogle({
+      credential: d.credential,
+      ...(d.numeroDocumento !== undefined && {
+        numeroDocumento: d.numeroDocumento.trim(),
+        tipoDocumento: d.tipoDocumento?.trim(),
+        nombres: d.nombres?.trim(),
+        apellidos: d.apellidos?.trim(),
+        telefono: d.telefono?.trim() || undefined,
+        aceptaTerminos: d.aceptaTerminos,
+      }),
     });
   }
 }

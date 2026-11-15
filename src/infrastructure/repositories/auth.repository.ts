@@ -1,6 +1,6 @@
-import type { AuthRepository } from "@/core/domain/ports";
+import type { AuthRepository, ResultadoGoogle } from "@/core/domain/ports";
 import type { Sesion } from "@/core/domain/entities/sesion";
-import type { Credenciales, DatosRegistro } from "@/core/domain/entities/usuario";
+import type { Credenciales, DatosGoogle, DatosRegistro, PerfilGoogle } from "@/core/domain/entities/usuario";
 import { AppError } from "@/core/domain/errors";
 import { internalApi } from "../http/internal-client";
 
@@ -14,6 +14,20 @@ export class HttpAuthRepository implements AuthRepository {
   async registrarse(datos: DatosRegistro): Promise<Sesion> {
     const { data } = await internalApi.post<{ sesion: Sesion }>("/auth/register", datos);
     return data.sesion;
+  }
+
+  /** 428 con `perfil` = el correo de Google aún no tiene cuenta y faltan datos (documento y términos). */
+  async accederConGoogle(datos: DatosGoogle): Promise<ResultadoGoogle> {
+    try {
+      const { data } = await internalApi.post<{ sesion: Sesion }>("/auth/google", datos);
+      return { tipo: "sesion", sesion: data.sesion };
+    } catch (e) {
+      const perfil = (e as AppError).detalle as { perfil?: PerfilGoogle } | undefined;
+      if (e instanceof AppError && e.status === 428 && perfil?.perfil) {
+        return { tipo: "incompleto", perfil: perfil.perfil };
+      }
+      throw e;
+    }
   }
 
   async cerrarSesion(): Promise<void> {
