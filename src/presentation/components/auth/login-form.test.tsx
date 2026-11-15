@@ -12,6 +12,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 const iniciarSesionMock = vi.fn();
+vi.mock("./acceso-google", () => ({
+  AccesoGoogle: ({ destino }: { destino: string }) => <button type="button" data-destino={destino}>Continuar con Google</button>,
+}));
+
 vi.mock("@/infrastructure/container", () => ({
   casosDeUso: { iniciarSesion: { ejecutar: iniciarSesionMock } },
 }));
@@ -67,5 +71,11 @@ describe("LoginForm", () => {
 
     expect(await screen.findByText("Credenciales inválidas")).toBeInTheDocument();
     expect(routerReplaceMock).not.toHaveBeenCalled();
+  });
+
+  it("ofrece continuar con Google y, tras entrar, lleva a /inicio", () => {
+    render(<LoginForm />);
+
+    expect(screen.getByRole("button", { name: /continuar con google/i })).toHaveAttribute("data-destino", "/inicio");
   });
 });

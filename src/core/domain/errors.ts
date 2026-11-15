@@ -8,6 +8,8 @@ export class AppError extends Error {
     public readonly mensajes: string[],
     public readonly status: number,
     public readonly origen: "interna" | "red" = "interna",
+    /** Cuerpo de error del backend tal cual (p. ej. el perfil de Google en un 428). */
+    public readonly detalle?: unknown,
   ) {
     super(mensajes.join(". "));
     this.name = "AppError";

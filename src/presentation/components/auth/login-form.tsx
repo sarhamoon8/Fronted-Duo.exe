@@ -10,6 +10,7 @@ import { useSesionStore } from "@/presentation/stores/sesion.store";
 import { Alert, ListaErrores } from "@/presentation/components/ui/alert";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/field";
+import { AccesoGoogle } from "./acceso-google";
 
 /** Solo permitimos redirecciones internas (evita open redirects). */
 function destinoSeguro(valor: string | null): string {
@@ -73,6 +74,10 @@ export function LoginForm() {
       <Button type="submit" cargando={enviando} className="mt-2 w-full">
         Iniciar sesión
       </Button>
+      <div className="flex items-center gap-3 text-xs text-tinta-tenue" role="separator" aria-label="o">
+        <span className="h-px flex-1 bg-borde" />o<span className="h-px flex-1 bg-borde" />
+      </div>
+      <AccesoGoogle destino={destinoSeguro(params.get("siguiente"))} />
       <p className="text-center text-sm text-tinta-suave">
         ¿No tienes cuenta?{" "}
         <Link href="/registro" className="font-semibold text-cerceta-profundo underline underline-offset-4">

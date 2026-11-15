@@ -43,3 +43,21 @@ export interface Credenciales {
   email: string;
   password: string;
 }
+
+/** Datos que Google certifica del usuario (los devuelve el backend en un 428). */
+export interface PerfilGoogle {
+  email: string;
+  nombres: string;
+  apellidos: string;
+}
+
+/** Espejo de GoogleAuthDto (POST /auth/google). `credential` es el token de identidad de Google. */
+export interface DatosGoogle {
+  credential: string;
+  numeroDocumento?: string;
+  tipoDocumento?: string;
+  nombres?: string;
+  apellidos?: string;
+  telefono?: string;
+  aceptaTerminos?: boolean;
+}

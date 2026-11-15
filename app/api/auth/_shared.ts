@@ -9,7 +9,7 @@ import { construirSesion, maxAgeDesdeToken, opcionesCookie } from "@/server/sess
  * (sin el token) al navegador. Los errores del backend se reenvían tal cual.
  */
 export async function autenticarContraBackend(
-  ruta: "/auth/login" | "/auth/register",
+  ruta: "/auth/login" | "/auth/register" | "/auth/google",
   request: Request,
 ) {
   let body: unknown;
