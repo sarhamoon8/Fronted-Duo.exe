@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { Logo, LogoCompleto } from "@/presentation/components/layout/logo";
+import { Logo } from "@/presentation/components/layout/logo";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,8 +27,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <Logo />
           </Link>
         </header>
-        <main className="flex flex-1 flex-col items-center justify-start gap-6 px-4 py-10 sm:justify-center">
-          <LogoCompleto className="hidden lg:block" />
+        <main className="flex flex-1 items-start justify-center px-4 py-10 sm:items-center">
           <div className="w-full max-w-md">{children}</div>
         </main>
       </div>
