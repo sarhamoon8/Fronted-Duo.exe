@@ -18,6 +18,8 @@ export interface AuthRepository {
   iniciarSesion(credenciales: Credenciales): Promise<Sesion>;
   registrarse(datos: DatosRegistro): Promise<Sesion>;
   accederConGoogle(datos: DatosGoogle): Promise<ResultadoGoogle>;
+  solicitarRecuperacion(email: string): Promise<void>;
+  restablecerPassword(token: string, password: string): Promise<void>;
   cerrarSesion(): Promise<void>;
   obtenerSesion(): Promise<Sesion | null>;
 }

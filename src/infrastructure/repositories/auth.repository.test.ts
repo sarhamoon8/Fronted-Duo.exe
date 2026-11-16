@@ -73,6 +73,25 @@ describe("HttpAuthRepository", () => {
     await expect(new HttpAuthRepository().accederConGoogle({ credential: "malo" })).rejects.toMatchObject({ status: 401 });
   });
 
+  it("solicitarRecuperacion llama a POST /auth/olvide-contrasena", async () => {
+    vi.mocked(internalApi.post).mockResolvedValue({ data: { message: "ok" } });
+
+    await new HttpAuthRepository().solicitarRecuperacion("ana@example.com");
+
+    expect(internalApi.post).toHaveBeenCalledWith("/auth/olvide-contrasena", { email: "ana@example.com" });
+  });
+
+  it("restablecerPassword llama a POST /auth/restablecer-contrasena y propaga el error si el enlace no sirve", async () => {
+    vi.mocked(internalApi.post).mockResolvedValueOnce({ data: { message: "ok" } });
+    const repo = new HttpAuthRepository();
+
+    await repo.restablecerPassword("tok", "ClaveNueva1!");
+    expect(internalApi.post).toHaveBeenCalledWith("/auth/restablecer-contrasena", { token: "tok", password: "ClaveNueva1!" });
+
+    vi.mocked(internalApi.post).mockRejectedValueOnce(new AppError(["El enlace no es válido o ya venció. Solicita uno nuevo."], 400));
+    await expect(repo.restablecerPassword("viejo", "ClaveNueva1!")).rejects.toMatchObject({ status: 400 });
+  });
+
   it("cerrarSesion llama a POST /auth/logout", async () => {
     vi.mocked(internalApi.post).mockResolvedValue({ data: undefined });
     const repo = new HttpAuthRepository();

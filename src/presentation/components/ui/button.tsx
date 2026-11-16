@@ -3,12 +3,15 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/presentation/lib/cn";
 import { Spinner } from "./spinner";
 
-export type Variante = "primario" | "estructura" | "secundario" | "peligro" | "fantasma";
+export type Variante = "primario" | "autenticacion" | "estructura" | "secundario" | "peligro" | "fantasma";
 
 const VARIANTES: Record<Variante, string> = {
   // 10 %: llamado a la acción principal
   primario: "bg-esmeralda border border-esmeralda text-white hover:bg-[#0ea371]",
   // 30 %: acción estructural
+  // Acción principal de las pantallas de acceso: verde azulado oscuro en móvil y verde en escritorio (Figma).
+  autenticacion:
+    "bg-cerceta-oscuro border border-cerceta-oscuro text-white hover:bg-cerceta-noche lg:bg-esmeralda lg:border-esmeralda lg:hover:bg-[#0ea371]",
   estructura: "bg-cerceta border border-cerceta text-white hover:bg-cerceta-profundo",
   secundario: "bg-superficie text-cerceta-oscuro border border-cerceta hover:bg-aqua-suave",
   peligro: "bg-rojo border border-rojo text-white hover:bg-peligro",

@@ -13,6 +13,8 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    // Los formularios largos escriben muchos caracteres con userEvent; en equipos lentos 5 s no alcanza.
+    testTimeout: 20_000,
     include: ["src/**/*.test.{ts,tsx}", "app/**/*.test.{ts,tsx}"],
     coverage: {
       provider: "v8",

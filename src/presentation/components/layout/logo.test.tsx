@@ -1,17 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Logo } from "./logo";
+import { Logo, LogoCompleto, LogoInsignia } from "./logo";
 
 describe("Logo", () => {
-  it("muestra el nombre y el lema por defecto", () => {
+  it("muestra la imagen de la marca", () => {
     render(<Logo />);
-    expect(screen.getByText("FilaCero")).toBeInTheDocument();
-    expect(screen.getByText("Salud sin filas")).toBeInTheDocument();
+    expect(screen.getByAltText("FilaCero")).toBeInTheDocument();
   });
 
-  it("oculta el lema en modo compacto", () => {
+  it("también se muestra en modo compacto", () => {
     render(<Logo compacto />);
-    expect(screen.getByText("FilaCero")).toBeInTheDocument();
-    expect(screen.queryByText("Salud sin filas")).not.toBeInTheDocument();
+    expect(screen.getByAltText("FilaCero")).toBeInTheDocument();
+  });
+});
+
+describe("LogoInsignia", () => {
+  it("muestra la imagen de la marca", () => {
+    render(<LogoInsignia />);
+    expect(screen.getByAltText("FilaCero")).toBeInTheDocument();
+  });
+});
+
+describe("LogoCompleto", () => {
+  it("muestra la imagen de la marca", () => {
+    render(<LogoCompleto />);
+    expect(screen.getByAltText("FilaCero")).toBeInTheDocument();
   });
 });

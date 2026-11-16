@@ -81,7 +81,7 @@ export function RegistroGoogleForm({ pendiente }: { pendiente: PendienteGoogle }
         y autorizo el tratamiento de mis datos según la{" "}
         <Link href="/privacidad" target="_blank" rel="noopener noreferrer" className={ENLACE}>Política de privacidad</Link>.
       </Checkbox>
-      <Button type="submit" cargando={enviando} className="w-full">Crear cuenta</Button>
+      <Button type="submit" variante="autenticacion" cargando={enviando} className="w-full">Crear cuenta</Button>
       <button type="button" onClick={borrarPendienteGoogle} className="min-h-9 text-center text-sm font-semibold text-cerceta-profundo">
         Usar otro método
       </button>

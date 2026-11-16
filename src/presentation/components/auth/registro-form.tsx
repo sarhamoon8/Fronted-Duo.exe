@@ -12,6 +12,7 @@ import { ListaErrores } from "@/presentation/components/ui/alert";
 import { Button } from "@/presentation/components/ui/button";
 import { Checkbox } from "@/presentation/components/ui/checkbox";
 import { Input, Select } from "@/presentation/components/ui/field";
+import { Separador } from "@/presentation/components/ui/separador";
 import { guardarPendienteGoogle, usePendienteGoogle } from "@/presentation/lib/registro-google";
 import { AccesoGoogle } from "./acceso-google";
 import { RegistroGoogleForm } from "./registro-google-form";
@@ -133,9 +134,7 @@ export function RegistroForm() {
         Mostrar contraseña
       </Checkbox>
 
-      <div className="flex items-center gap-3 text-xs text-tinta-tenue" role="separator" aria-label="o">
-        <span className="h-px flex-1 bg-borde" />o<span className="h-px flex-1 bg-borde" />
-      </div>
+      <Separador />
       <AccesoGoogle onIncompleto={guardarPendienteGoogle} />
 
       <Checkbox
@@ -154,7 +153,7 @@ export function RegistroForm() {
         .
       </Checkbox>
 
-      <Button type="submit" cargando={enviando} className="w-full">
+      <Button type="submit" variante="autenticacion" cargando={enviando} className="w-full">
         Crear cuenta
       </Button>
       <p className="text-center text-sm">

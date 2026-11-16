@@ -57,3 +57,24 @@ export function errorSinBackend() {
     { status: 502 },
   );
 }
+
+/**
+ * Reenvía tal cual un POST público (sin sesión ni cookie) al backend: pedir el
+ * enlace de recuperación y definir la contraseña nueva. El navegador nunca habla
+ * directo con el backend; aquí solo se pasan el cuerpo y el status.
+ */
+export async function reenviarAlBackend(ruta: "/auth/olvide-contrasena" | "/auth/restablecer-contrasena", request: Request) {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ message: "Cuerpo JSON inválido", error: "Bad Request", statusCode: 400 }, { status: 400 });
+  }
+
+  try {
+    const res = await crearBackendClient().post(ruta, body);
+    return NextResponse.json(res.data ?? {}, { status: res.status });
+  } catch {
+    return errorSinBackend();
+  }
+}

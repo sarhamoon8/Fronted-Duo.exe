@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TicketCheck } from "lucide-react";
 import { cn } from "@/presentation/lib/cn";
+import { LogoInsignia } from "./logo";
 
 const LINEA_1 = "Bienvenido a FilaCero,";
 const LINEA_2_PREFIJO = "donde transformamos la espera en";
@@ -77,13 +77,9 @@ export function Presentacion() {
       <span aria-hidden="true" className="absolute -bottom-40 -right-40 size-[420px] rounded-full bg-esmeralda/20 blur-3xl transition-opacity duration-1000 delay-1000" />
 
       <div className="relative flex max-w-3xl flex-col items-center gap-8">
-        <span aria-hidden="true" className={cn(
-          "flex size-20 items-center justify-center rounded-2xl bg-white text-cerceta-oscuro shadow-tarjeta sm:size-24",
-          "transition-opacity duration-[2000ms] ease-in-out",
-          animarEntrada ? "opacity-100" : "opacity-0"
-        )}>
-          <TicketCheck className="size-10 sm:size-12" strokeWidth={1.75} />
-        </span>
+        <LogoInsignia
+          className={cn("transition-opacity duration-[2000ms] ease-in-out", animarEntrada ? "opacity-100" : "opacity-0")}
+        />
 
         <p className="flex flex-col items-center gap-3">
           <span

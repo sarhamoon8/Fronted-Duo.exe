@@ -9,6 +9,8 @@ import {
   CerrarSesionUseCase,
   IniciarSesionUseCase,
   RegistrarseUseCase,
+  RestablecerPasswordUseCase,
+  SolicitarRecuperacionUseCase,
 } from "@/core/application/use-cases/auth.use-cases";
 import {
   CrearEntidadUseCase,
@@ -77,6 +79,8 @@ export const casosDeUso = {
   iniciarSesion: new IniciarSesionUseCase(authRepo),
   registrarse: new RegistrarseUseCase(authRepo),
   accederConGoogle: new AccederConGoogleUseCase(authRepo),
+  solicitarRecuperacion: new SolicitarRecuperacionUseCase(authRepo),
+  restablecerPassword: new RestablecerPasswordUseCase(authRepo),
   cerrarSesion: new CerrarSesionUseCase(authRepo),
 
   listarEntidades: new ListarEntidadesUseCase(catalogoRepo),
