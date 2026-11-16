@@ -83,6 +83,19 @@ responsive):
 - `CrearUsuarioUseCase` (alta de personal por el ADMIN) **no** usa estos requisitos: su endpoint
   sigue pidiendo mínimo 6 caracteres.
 
+## Iniciar sesión y recuperar la contraseña
+
+- `/login` sigue el diseño de Figma: casilla "Mostrar contraseña", "Continuar con Google", enlace
+  "¿Olvidaste tu contraseña?" y "Crear cuenta". El botón principal de las pantallas de acceso usa la
+  variante `autenticacion` (verde azulado oscuro en móvil y verde en escritorio, como en Figma).
+- `/recuperar-contrasena` (`RecuperarForm`): pide el correo y muestra siempre la misma confirmación,
+  exista o no la cuenta. Llama a `POST /api/auth/olvide-contrasena`.
+- `/restablecer-contrasena?token=…` (`RestablecerForm`): lee el token del enlace del correo y pide la
+  contraseña dos veces, con la lista de requisitos y "Mostrar contraseñas". Llama a
+  `POST /api/auth/restablecer-contrasena`. Si el enlace no sirve (falta el token, venció o ya se usó)
+  ofrece pedir uno nuevo. Ambas rutas pasan por `reenviarAlBackend` (`app/api/auth/_shared.ts`), sin
+  cookie ni sesión.
+
 ## Route Handlers de `/api/auth/*`
 
 - **`_shared.ts` → `autenticarContraBackend(ruta, request)`**: cuerpo compartido de login y
