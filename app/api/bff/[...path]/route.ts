@@ -31,13 +31,24 @@ async function proxy(request: NextRequest, ctx: RouteContext<"/api/bff/[...path]
   }
 
   // Protección CSRF básica: las mutaciones deben venir de nuestro propio origen.
+  //
+  // No usamos request.nextUrl.origin tal cual: detrás de un proxy (p. ej.
+  // Railway) la conexión al contenedor llega por HTTP aunque el navegador
+  // vea HTTPS, así que Next.js arma el esquema equivocado. Reconstruimos el
+  // origen real con x-forwarded-proto/x-forwarded-host, que el proxy sí
+  // reenvía.
   if (METODOS_CON_CUERPO.has(request.method)) {
     const origin = request.headers.get("origin");
-    if (origin && origin !== request.nextUrl.origin) {
-      return NextResponse.json(
-        { message: "Origen no permitido", error: "Forbidden", statusCode: 403 },
-        { status: 403 },
-      );
+    if (origin) {
+      const proto = request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "");
+      const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? request.nextUrl.host;
+      const origenEsperado = `${proto}://${host}`;
+      if (origin !== origenEsperado) {
+        return NextResponse.json(
+          { message: "Origen no permitido", error: "Forbidden", statusCode: 403 },
+          { status: 403 },
+        );
+      }
     }
   }
 
