@@ -44,24 +44,8 @@ async function proxy(request: NextRequest, ctx: RouteContext<"/api/bff/[...path]
       const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? request.nextUrl.host;
       const origenEsperado = `${proto}://${host}`;
       if (origin !== origenEsperado) {
-        // DEBUG TEMPORAL — quitar después de diagnosticar el 403 en Railway.
         return NextResponse.json(
-          {
-            message: "Origen no permitido",
-            error: "Forbidden",
-            statusCode: 403,
-            debug: {
-              origin,
-              origenEsperado,
-              proto,
-              host,
-              headerXForwardedProto: request.headers.get("x-forwarded-proto"),
-              headerXForwardedHost: request.headers.get("x-forwarded-host"),
-              headerHost: request.headers.get("host"),
-              nextUrlOrigin: request.nextUrl.origin,
-              allHeaders: Object.fromEntries(request.headers.entries()),
-            },
-          },
+          { message: "Origen no permitido", error: "Forbidden", statusCode: 403 },
           { status: 403 },
         );
       }
