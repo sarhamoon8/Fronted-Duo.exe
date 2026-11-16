@@ -153,7 +153,7 @@ export function RegistroForm() {
         .
       </Checkbox>
 
-      <Button type="submit" cargando={enviando} className="w-full">
+      <Button type="submit" variante="autenticacion" cargando={enviando} className="w-full">
         Crear cuenta
       </Button>
       <p className="text-center text-sm">

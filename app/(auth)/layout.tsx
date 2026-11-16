@@ -35,7 +35,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </header>
         <main className="relative flex flex-1 items-start justify-center overflow-hidden px-4 py-10 sm:items-center">
           <span aria-hidden="true" className="absolute left-1/2 top-0 size-[420px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-aqua/50 blur-3xl sm:top-1/2 sm:-translate-y-1/2" />
-          <div className="animar-entrada relative w-full max-w-md">{children}</div>
+          <div className="animar-entrada relative w-full max-w-[522px]">{children}</div>
         </main>
       </div>
     </div>

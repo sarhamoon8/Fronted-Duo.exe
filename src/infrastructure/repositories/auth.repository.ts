@@ -30,6 +30,14 @@ export class HttpAuthRepository implements AuthRepository {
     }
   }
 
+  async solicitarRecuperacion(email: string): Promise<void> {
+    await internalApi.post("/auth/olvide-contrasena", { email });
+  }
+
+  async restablecerPassword(token: string, password: string): Promise<void> {
+    await internalApi.post("/auth/restablecer-contrasena", { token, password });
+  }
+
   async cerrarSesion(): Promise<void> {
     await internalApi.post("/auth/logout");
   }

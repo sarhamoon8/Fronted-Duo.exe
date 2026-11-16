@@ -7,9 +7,13 @@ import {
   CerrarSesionUseCase,
   IniciarSesionUseCase,
   RegistrarseUseCase,
+  RestablecerPasswordUseCase,
+  SolicitarRecuperacionUseCase,
   validarCredenciales,
   validarAccesoGoogle,
+  validarNuevaPassword,
   validarRegistro,
+  validarSolicitudRecuperacion,
 } from "./auth.use-cases";
 
 function crearRepoFalso(overrides: Partial<AuthRepository> = {}): AuthRepository {
@@ -17,6 +21,8 @@ function crearRepoFalso(overrides: Partial<AuthRepository> = {}): AuthRepository
     iniciarSesion: vi.fn(),
     registrarse: vi.fn(),
     accederConGoogle: vi.fn(),
+    solicitarRecuperacion: vi.fn(),
+    restablecerPassword: vi.fn(),
     cerrarSesion: vi.fn(),
     obtenerSesion: vi.fn(),
     ...overrides,
@@ -241,6 +247,66 @@ describe("AccederConGoogleUseCase", () => {
       new AccederConGoogleUseCase(repo).ejecutar({ credential: "token", numeroDocumento: "555", tipoDocumento: "CC", aceptaTerminos: false }),
     ).rejects.toBeInstanceOf(AppError);
     expect(repo.accederConGoogle).not.toHaveBeenCalled();
+  });
+});
+
+describe("validarSolicitudRecuperacion", () => {
+  it("acepta un correo válido y rechaza uno inválido", () => {
+    expect(validarSolicitudRecuperacion(" ana@example.com ")).toEqual([]);
+    expect(validarSolicitudRecuperacion("no-es-correo")).toEqual(["Ingresa un correo electrónico válido."]);
+    expect(validarSolicitudRecuperacion("")).toHaveLength(1);
+  });
+});
+
+describe("validarNuevaPassword", () => {
+  it("acepta una contraseña con todos los requisitos repetida igual", () => {
+    expect(validarNuevaPassword({ password: "ClaveNueva1!", confirmacion: "ClaveNueva1!" })).toEqual([]);
+  });
+
+  it("pide los requisitos que faltan, los mismos del registro", () => {
+    expect(validarNuevaPassword({ password: "abc", confirmacion: "abc" })).toEqual([
+      "La contraseña debe tener al menos 8 caracteres, una letra mayúscula, un número, un símbolo especial (!, @ o #).",
+    ]);
+  });
+
+  it("exige que las dos contraseñas coincidan", () => {
+    expect(validarNuevaPassword({ password: "ClaveNueva1!", confirmacion: "ClaveNueva2!" })).toEqual(["Las contraseñas no coinciden."]);
+  });
+});
+
+describe("SolicitarRecuperacionUseCase", () => {
+  it("normaliza el correo y delega en el repositorio", async () => {
+    const repo = crearRepoFalso({ solicitarRecuperacion: vi.fn().mockResolvedValue(undefined) });
+
+    await new SolicitarRecuperacionUseCase(repo).ejecutar("  Ana@Example.com ");
+
+    expect(repo.solicitarRecuperacion).toHaveBeenCalledWith("ana@example.com");
+  });
+
+  it("lanza AppError 400 sin llamar al repositorio si el correo es inválido", async () => {
+    const repo = crearRepoFalso();
+
+    await expect(new SolicitarRecuperacionUseCase(repo).ejecutar("x")).rejects.toBeInstanceOf(AppError);
+    expect(repo.solicitarRecuperacion).not.toHaveBeenCalled();
+  });
+});
+
+describe("RestablecerPasswordUseCase", () => {
+  it("envía el token y la contraseña nueva", async () => {
+    const repo = crearRepoFalso({ restablecerPassword: vi.fn().mockResolvedValue(undefined) });
+
+    await new RestablecerPasswordUseCase(repo).ejecutar({ token: "tok", password: "ClaveNueva1!", confirmacion: "ClaveNueva1!" });
+
+    expect(repo.restablecerPassword).toHaveBeenCalledWith("tok", "ClaveNueva1!");
+  });
+
+  it("no llama al repositorio si no cumple los requisitos o no coinciden", async () => {
+    const repo = crearRepoFalso();
+    const useCase = new RestablecerPasswordUseCase(repo);
+
+    await expect(useCase.ejecutar({ token: "tok", password: "abc", confirmacion: "abc" })).rejects.toBeInstanceOf(AppError);
+    await expect(useCase.ejecutar({ token: "tok", password: "ClaveNueva1!", confirmacion: "otra" })).rejects.toBeInstanceOf(AppError);
+    expect(repo.restablecerPassword).not.toHaveBeenCalled();
   });
 });
 

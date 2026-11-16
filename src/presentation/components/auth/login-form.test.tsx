@@ -52,7 +52,7 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     await usuario.type(screen.getByLabelText(/correo electrónico/i), "ana@example.com");
-    await usuario.type(screen.getByLabelText(/contraseña/i), "clave123");
+    await usuario.type(screen.getByLabelText(/^contraseña$/i), "clave123");
     await usuario.click(screen.getByRole("button", { name: /iniciar sesión/i }));
 
     await waitFor(() => expect(routerReplaceMock).toHaveBeenCalledWith("/inicio"));
@@ -66,7 +66,7 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     await usuario.type(screen.getByLabelText(/correo electrónico/i), "ana@example.com");
-    await usuario.type(screen.getByLabelText(/contraseña/i), "clave-incorrecta");
+    await usuario.type(screen.getByLabelText(/^contraseña$/i), "clave-incorrecta");
     await usuario.click(screen.getByRole("button", { name: /iniciar sesión/i }));
 
     expect(await screen.findByText("Credenciales inválidas")).toBeInTheDocument();
@@ -77,5 +77,25 @@ describe("LoginForm", () => {
     render(<LoginForm />);
 
     expect(screen.getByRole("button", { name: /continuar con google/i })).toHaveAttribute("data-destino", "/inicio");
+  });
+
+  it("sigue el diseño: casilla para mostrar la contraseña", async () => {
+    const usuario = userEvent.setup();
+    render(<LoginForm />);
+    const campo = screen.getByLabelText(/^contraseña$/i);
+    expect(campo).toHaveAttribute("type", "password");
+
+    await usuario.click(screen.getByLabelText(/mostrar contraseña/i));
+    expect(campo).toHaveAttribute("type", "text");
+
+    await usuario.click(screen.getByLabelText(/mostrar contraseña/i));
+    expect(campo).toHaveAttribute("type", "password");
+  });
+
+  it("enlaza a recuperar la contraseña y a crear cuenta", () => {
+    render(<LoginForm />);
+
+    expect(screen.getByRole("link", { name: "¿Olvidaste tu contraseña?" })).toHaveAttribute("href", "/recuperar-contrasena");
+    expect(screen.getByRole("link", { name: "Crear cuenta" })).toHaveAttribute("href", "/registro");
   });
 });
