@@ -26,12 +26,32 @@ export function validarDatosPersona(d: DatosPersona): string[] {
   return errores;
 }
 
+/** "La contraseña debe tener …" con los requisitos que faltan, o null si los cumple todos (mismos que el backend). */
+function mensajeRequisitosPassword(password: string): string | null {
+  const faltan = reglasIncumplidas(password);
+  return faltan.length ? `La contraseña debe tener ${faltan.map((r) => r.falta).join(", ")}.` : null;
+}
+
 /** Mismas reglas que RegisterDto: datos de la persona, contraseña con requisitos y términos aceptados. */
 export function validarRegistro(d: DatosRegistro): string[] {
   const errores = validarDatosPersona(d);
-  const faltan = reglasIncumplidas(d.password);
-  if (faltan.length) errores.push(`La contraseña debe tener ${faltan.map((r) => r.falta).join(", ")}.`);
+  const requisitos = mensajeRequisitosPassword(d.password);
+  if (requisitos) errores.push(requisitos);
   if (!d.aceptaTerminos) errores.push("Debes aceptar los términos de uso y la política de privacidad.");
+  return errores;
+}
+
+/** Mismas reglas que SolicitarRecuperacionDto (IsEmail). */
+export function validarSolicitudRecuperacion(email: string): string[] {
+  return EMAIL_RE.test(email.trim()) ? [] : ["Ingresa un correo electrónico válido."];
+}
+
+/** Mismas reglas que RestablecerPasswordDto, más que las dos contraseñas coincidan. */
+export function validarNuevaPassword(d: { password: string; confirmacion: string }): string[] {
+  const errores: string[] = [];
+  const requisitos = mensajeRequisitosPassword(d.password);
+  if (requisitos) errores.push(requisitos);
+  if (d.password !== d.confirmacion) errores.push("Las contraseñas no coinciden.");
   return errores;
 }
 
@@ -93,6 +113,26 @@ export class AccederConGoogleUseCase {
         aceptaTerminos: d.aceptaTerminos,
       }),
     });
+  }
+}
+
+/** Pide el correo con el enlace para cambiar la contraseña (el backend responde igual exista o no la cuenta). */
+export class SolicitarRecuperacionUseCase {
+  constructor(private readonly repo: AuthRepository) {}
+  async ejecutar(email: string) {
+    const errores = validarSolicitudRecuperacion(email);
+    if (errores.length) throw new AppError(errores, 400);
+    return this.repo.solicitarRecuperacion(email.trim().toLowerCase());
+  }
+}
+
+/** Define la contraseña nueva con el token del enlace. */
+export class RestablecerPasswordUseCase {
+  constructor(private readonly repo: AuthRepository) {}
+  async ejecutar(d: { token: string; password: string; confirmacion: string }) {
+    const errores = validarNuevaPassword(d);
+    if (errores.length) throw new AppError(errores, 400);
+    return this.repo.restablecerPassword(d.token, d.password);
   }
 }
 
