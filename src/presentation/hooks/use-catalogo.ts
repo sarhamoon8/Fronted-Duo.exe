@@ -22,6 +22,7 @@ export function useCatalogo(entidadId: string) {
   const [entidades, setEntidades] = useState<Cargado<EntidadMedica[]> | null>(null);
   const [servicios, setServicios] = useState<Cargado<Servicio[]> | null>(null);
   const [puntos, setPuntos] = useState<Cargado<PuntoDispensacion[]> | null>(null);
+  const [todosPuntos, setTodosPuntos] = useState<Cargado<PuntoDispensacion[]> | null>(null);
 
   useEffect(() => {
     let vigente = true;
@@ -30,6 +31,19 @@ export function useCatalogo(entidadId: string) {
       .ejecutar()
       .then((datos) => vigente && setEntidades({ clave, datos, error: null }))
       .catch((e) => vigente && setEntidades({ clave, datos: [], error: mensajeDeError(e) }));
+    return () => {
+      vigente = false;
+    };
+  }, [version]);
+
+  // Todas las sedes físicas: de aquí salen las ciudades y zonas para filtrar.
+  useEffect(() => {
+    let vigente = true;
+    const clave = String(version);
+    casosDeUso.listarPuntos
+      .ejecutar()
+      .then((datos) => vigente && setTodosPuntos({ clave, datos, error: null }))
+      .catch((e) => vigente && setTodosPuntos({ clave, datos: [], error: mensajeDeError(e) }));
     return () => {
       vigente = false;
     };
@@ -70,7 +84,9 @@ export function useCatalogo(entidadId: string) {
     entidades: entidades?.datos ?? [],
     servicios: serviciosVigentes?.datos ?? [],
     puntos: puntosVigentes?.datos ?? [],
+    todosPuntos: todosPuntos?.datos ?? [],
     cargandoEntidades: entidades?.clave !== String(version),
+    cargandoTodosPuntos: todosPuntos?.clave !== String(version),
     cargandoServicios: !!entidadId && !serviciosVigentes,
     cargandoPuntos: !!entidadId && !puntosVigentes,
     error: entidades?.error ?? serviciosVigentes?.error ?? puntosVigentes?.error ?? null,
