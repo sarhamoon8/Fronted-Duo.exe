@@ -18,6 +18,8 @@ export interface PuntoDispensacion {
   nombreSede: string;
   direccion: string;
   ciudad: string;
+  /** Zona o barrio dentro de la ciudad (null en sedes antiguas). */
+  zona: string | null;
   telefonoContacto: string | null;
   capacidadAtencion: number;
 }
