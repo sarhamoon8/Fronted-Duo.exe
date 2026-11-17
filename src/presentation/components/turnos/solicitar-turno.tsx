@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,6 +17,7 @@ import {
   Pill,
   Stethoscope,
 } from "lucide-react";
+import type { PuntoDispensacion } from "@/core/domain/entities/catalogo";
 import { AppError, mensajeDeError } from "@/core/domain/errors";
 import { casosDeUso } from "@/infrastructure/container";
 import { useCatalogo } from "@/presentation/hooks/use-catalogo";
@@ -56,17 +57,57 @@ export function SolicitarTurno() {
   const [documento, setDocumento] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [errores, setErrores] = useState<string[]>([]);
-  const { entidades, servicios, puntos, cargandoEntidades, cargandoServicios, cargandoPuntos, error } =
-    useCatalogo(entidadId);
+  const [ciudadElegida, setCiudadElegida] = useState<string | null>(null);
+  const [zona, setZona] = useState("");
+  const {
+    entidades,
+    servicios,
+    puntos,
+    todosPuntos,
+    cargandoEntidades,
+    cargandoTodosPuntos,
+    cargandoServicios,
+    cargandoPuntos,
+    error,
+  } = useCatalogo(entidadId);
+
+  const ciudades = useMemo(() => valoresUnicos(todosPuntos.map((p) => p.ciudad)), [todosPuntos]);
+  // Mientras el paciente no elige, se parte de Bogotá si hay sedes allí.
+  const ciudad = ciudadElegida ?? (ciudades.includes(CIUDAD_INICIAL) ? CIUDAD_INICIAL : "");
+  const zonas = useMemo(
+    () => valoresUnicos(todosPuntos.filter((p) => !ciudad || p.ciudad === ciudad).map((p) => p.zona)),
+    [todosPuntos, ciudad],
+  );
+  const coincideConFiltros = useCallback(
+    (p: PuntoDispensacion) => (!ciudad || p.ciudad === ciudad) && (!zona || p.zona === zona),
+    [ciudad, zona],
+  );
+  // Solo se ofrecen las entidades con al menos una sede en la ciudad y zona elegidas.
+  const entidadesVisibles = useMemo(() => {
+    const conSede = new Set(todosPuntos.filter(coincideConFiltros).map((p) => p.entidadId));
+    return entidades.filter((e) => conSede.has(e.id));
+  }, [entidades, todosPuntos, coincideConFiltros]);
+  const puntosVisibles = useMemo(() => puntos.filter(coincideConFiltros), [puntos, coincideConFiltros]);
 
   const entidad = entidades.find((e) => e.id === entidadId);
-  const punto = useMemo(() => puntos.find((p) => p.id === puntoId), [puntos, puntoId]);
+  const punto = useMemo(() => puntosVisibles.find((p) => p.id === puntoId), [puntosVisibles, puntoId]);
   const servicio = useMemo(() => servicios.find((s) => s.id === servicioId), [servicios, servicioId]);
 
   function elegirEntidad(id: string) {
     setEntidadId(id);
     setPuntoId("");
     setServicioId("");
+  }
+
+  function elegirCiudad(valor: string) {
+    setCiudadElegida(valor);
+    setZona("");
+    elegirEntidad("");
+  }
+
+  function elegirZona(valor: string) {
+    setZona(valor);
+    elegirEntidad("");
   }
 
   async function confirmar() {
@@ -103,32 +144,55 @@ export function SolicitarTurno() {
                   1. Selecciona una sede
                 </CardTitulo>
 
-                {/* Filtros visuales: el backend aún no guarda ciudad ni zona. */}
                 <div className="mb-[18px] grid gap-3.5 sm:grid-cols-2">
-                  <SelectDecorativo etiqueta="Ciudad" icono={<MapPin className="size-[18px]" />} valor="Bogotá D. C." />
-                  <SelectDecorativo etiqueta="Zona o barrio" icono={<MapIcon className="size-[18px]" />} valor="Todas las zonas" destacado />
+                  <SelectFiltro
+                    etiqueta="Ciudad"
+                    icono={<MapPin className="size-[18px]" />}
+                    valor={ciudad}
+                    onChange={elegirCiudad}
+                    opciones={ciudades}
+                    vacio="Todas las ciudades"
+                    deshabilitado={cargandoTodosPuntos}
+                  />
+                  <SelectFiltro
+                    etiqueta="Zona o barrio"
+                    icono={<MapIcon className="size-[18px]" />}
+                    valor={zona}
+                    onChange={elegirZona}
+                    opciones={zonas}
+                    vacio="Todas las zonas"
+                    deshabilitado={cargandoTodosPuntos || zonas.length === 0}
+                    destacado={!!zona}
+                  />
                 </div>
 
-                {cargandoEntidades ? (
+                {cargandoEntidades || cargandoTodosPuntos ? (
                   <Spinner etiqueta="Cargando sedes…" />
                 ) : entidades.length === 0 ? (
                   <EstadoVacio titulo="Aún no hay sedes registradas" icono={<Hospital className="size-5" />}>
                     Un administrador debe registrarlas primero.
                   </EstadoVacio>
+                ) : entidadesVisibles.length === 0 ? (
+                  <EstadoVacio titulo="No hay centros médicos en esa zona" icono={<MapPin className="size-5" />}>
+                    Prueba con otra zona o con otra ciudad.
+                  </EstadoVacio>
                 ) : (
                   <fieldset>
                     <legend className="sr-only">Sede</legend>
                     <div className="flex flex-col gap-2.5">
-                      {entidades.map((e) => (
-                        <OpcionFila
-                          key={e.id}
-                          nombre="sede"
-                          seleccionado={e.id === entidadId}
-                          onChange={() => elegirEntidad(e.id)}
-                          titulo={e.nombre}
-                          subtitulo="Sede de la red de salud"
-                        />
-                      ))}
+                      {entidadesVisibles.map((e) => {
+                        const cantidad = todosPuntos.filter((p) => p.entidadId === e.id && coincideConFiltros(p)).length;
+                        return (
+                          <OpcionFila
+                            key={e.id}
+                            nombre="sede"
+                            seleccionado={e.id === entidadId}
+                            onChange={() => elegirEntidad(e.id)}
+                            titulo={e.nombre}
+                            subtitulo={cantidad === 1 ? "1 punto de atención" : `${cantidad} puntos de atención`}
+                          />
+                        );
+                      })}
                     </div>
                   </fieldset>
                 )}
@@ -142,22 +206,22 @@ export function SolicitarTurno() {
                   <p className="text-sm text-tinta-tenue">Primero selecciona una sede.</p>
                 ) : cargandoPuntos ? (
                   <Spinner etiqueta="Cargando puntos de atención…" />
-                ) : puntos.length === 0 ? (
-                  <EstadoVacio titulo="Esta sede no tiene puntos de atención registrados" icono={<MapPin className="size-5" />}>
-                    Un administrador debe registrarlos primero.
+                ) : puntosVisibles.length === 0 ? (
+                  <EstadoVacio titulo="Esta sede no tiene puntos de atención en esa zona" icono={<MapPin className="size-5" />}>
+                    Cambia la ciudad o la zona para ver otros puntos.
                   </EstadoVacio>
                 ) : (
                   <fieldset>
                     <legend className="sr-only">Punto de atención</legend>
                     <div className="flex flex-col gap-2.5">
-                      {puntos.map((p) => (
+                      {puntosVisibles.map((p) => (
                         <OpcionFila
                           key={p.id}
                           nombre="punto"
                           seleccionado={p.id === puntoId}
                           onChange={() => setPuntoId(p.id)}
                           titulo={p.nombreSede}
-                          subtitulo={`${p.direccion} · ${p.ciudad}`}
+                          subtitulo={[p.direccion, p.zona, p.ciudad].filter(Boolean).join(" · ")}
                         />
                       ))}
                     </div>
@@ -388,22 +452,55 @@ function OpcionFila({
   );
 }
 
-function SelectDecorativo({ etiqueta, icono, valor, destacado }: { etiqueta: string; icono: React.ReactNode; valor: string; destacado?: boolean }) {
-  // Filtro visual: el backend aún no guarda ciudad ni zona de las sedes.
+const CIUDAD_INICIAL = "Bogotá D. C.";
+
+/** Valores sin repetir ni vacíos, en orden alfabético del español. */
+function valoresUnicos(valores: (string | null)[]): string[] {
+  return [...new Set(valores.filter((v): v is string => !!v))].sort((x, y) => x.localeCompare(y, "es"));
+}
+
+function SelectFiltro({
+  etiqueta,
+  icono,
+  valor,
+  onChange,
+  opciones,
+  vacio,
+  deshabilitado,
+  destacado,
+}: {
+  etiqueta: string;
+  icono: React.ReactNode;
+  valor: string;
+  onChange: (valor: string) => void;
+  opciones: string[];
+  vacio: string;
+  deshabilitado?: boolean;
+  destacado?: boolean;
+}) {
+  const id = useId();
   return (
     <div className="flex flex-col gap-[7px]">
-      <p className="text-[13px] text-tinta">{etiqueta}</p>
-      <button
-        type="button"
-        className={cn(
-          "flex h-[50px] w-full items-center gap-2.5 rounded-xl bg-superficie px-3.5 text-left text-sm text-tinta",
-          destacado ? "border-2 border-cerceta" : "border border-borde",
-        )}
-      >
-        <span className="text-cerceta-oscuro" aria-hidden="true">{icono}</span>
-        <span className="flex-1 truncate">{valor}</span>
-        <ChevronDown className="size-4 text-tinta-tenue" aria-hidden="true" />
-      </button>
+      <label htmlFor={id} className="text-[13px] text-tinta">{etiqueta}</label>
+      <div className="relative">
+        <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-cerceta-oscuro" aria-hidden="true">{icono}</span>
+        <select
+          id={id}
+          value={valor}
+          disabled={deshabilitado}
+          onChange={(e) => onChange(e.target.value)}
+          className={cn(
+            "h-[50px] w-full appearance-none truncate rounded-xl bg-superficie pl-11 pr-10 text-sm text-tinta focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cerceta-noche disabled:opacity-60",
+            destacado ? "border-2 border-cerceta" : "border border-borde",
+          )}
+        >
+          <option value="">{vacio}</option>
+          {opciones.map((o) => (
+            <option key={o} value={o}>{o}</option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-tinta-tenue" aria-hidden="true" />
+      </div>
     </div>
   );
 }

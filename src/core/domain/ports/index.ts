@@ -44,6 +44,7 @@ export interface NuevoPunto {
   nombreSede: string;
   direccion: string;
   ciudad: string;
+  zona?: string;
   telefonoContacto?: string;
   capacidadAtencion: number;
 }
